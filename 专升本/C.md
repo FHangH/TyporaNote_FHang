@@ -237,9 +237,9 @@ x++：先参与表达式运算，再改变量值
 3. 按位异或（真 异或 ？= ！？；假 异或 ？= ？）
 4. 按位取反
 
-![](D:\TyporaNote\专升本\C.assets\按位运算.png)
+![](C.assets\按位运算.png)
 
-![](D:\TyporaNote\专升本\C.assets\位运算02.png)
+![](C.assets\位运算02.png)
 
 
 
@@ -363,7 +363,7 @@ putchar('\x41');
 
 例：printf(“格式控制字符串”， 输出字符列表)；
 
-![](D:\TyporaNote\专升本\C.assets\格式输出.png)
+![](C.assets\格式输出.png)
 
 
 
@@ -1137,7 +1137,7 @@ int main()
 
 - 初始化：
 
-  ![](D:\TyporaNote\专升本\C.assets\二维数组初始化.png)
+  ![](C.assets\二维数组初始化.png)
 
 - 
 
@@ -1426,7 +1426,7 @@ int main()
 
   2. 用字符串初始化：char a[11] = {"I am a boy"};
 
-     ![](D:\TyporaNote\专升本\C.assets\字符数组初始化.png)
+     ![](C.assets\字符数组初始化.png)
 
 
 
@@ -1446,11 +1446,11 @@ char a[20];
 
      printf ("%s", a);
 
-     ![](D:\TyporaNote\专升本\C.assets\字符输入输出1.png)
+     ![](C.assets\字符输入输出1.png)
 
      
 
-     ![](D:\TyporaNote\专升本\C.assets\gets_puts.png)
+     ![](C.assets\gets_puts.png)
 
 
 
@@ -1458,9 +1458,9 @@ char a[20];
 
 ###### 8.3.3 字符串处理函数
 
-![](D:\TyporaNote\专升本\C.assets\字符串处理函数.png)
+![](C.assets\字符串处理函数.png)
 
-![](D:\TyporaNote\专升本\C.assets\字符串处理函数1.png)
+![](C.assets\字符串处理函数1.png)
 
 
 
@@ -1688,13 +1688,13 @@ int main()
 
 ###### 9.6.1 函数的嵌套调用
 
-![](D:\TyporaNote\专升本\C.assets\函数的嵌套调用.png)
+![](C.assets\函数的嵌套调用.png)
 
 
 
 ###### 9.6.2 例题
 
-<img src="D:\TyporaNote\专升本\C.assets\嵌套递归例子.png" style="zoom:50%;" />
+<img src="C.assets\嵌套递归例子.png" style="zoom:50%;" />
 
 ```c
 #include <stdio.h>
@@ -1735,7 +1735,7 @@ float funcCalculate(int m, int n, int p)
 
 ###### 9.6.3 函数的递归调用
 
-<img src="D:\TyporaNote\专升本\C.assets\函数的嵌套与递归调用.png" style="zoom:50%;" />
+<img src="C.assets\函数的嵌套与递归调用.png" style="zoom:50%;" />
 
 
 
@@ -1747,19 +1747,19 @@ float funcCalculate(int m, int n, int p)
 
 ###### 9.7.1 定义和区别
 
-<img src="D:\TyporaNote\专升本\C.assets\变量的作用域.png" style="zoom:67%;" />
+<img src="C.assets\变量的作用域.png" style="zoom:67%;" />
 
 
 
 ###### 9.7.2 全局变量例子
 
-<img src="D:\TyporaNote\专升本\C.assets\变量的作用域_全局变量.png" style="zoom:67%;" />
+<img src="C.assets\变量的作用域_全局变量.png" style="zoom:67%;" />
 
 
 
 ###### 9.7.3 全局变量和局部变量同名
 
-<img src="D:\TyporaNote\专升本\C.assets\变量的作用域_全局变量与局部变量同名.png" style="zoom: 67%;" />
+<img src="C.assets\变量的作用域_全局变量与局部变量同名.png" style="zoom: 67%;" />
 
 
 
@@ -1771,17 +1771,17 @@ float funcCalculate(int m, int n, int p)
 
 ###### 9.8.1 定义和分类
 
-![](D:\TyporaNote\专升本\C.assets\变量的存储类型.png)
+![](C.assets\变量的存储类型.png)
 
-![](D:\TyporaNote\专升本\C.assets\变量的存储类型_1.png)
+![](C.assets\变量的存储类型_1.png)
 
 
 
 ###### 9.8.2 例子
 
-<img src="D:\TyporaNote\专升本\C.assets\变量的存储类型_静态局部变量应用举例.png" style="zoom:50%;" />
+<img src="C.assets\变量的存储类型_静态局部变量应用举例.png" style="zoom:50%;" />
 
-<img src="D:\TyporaNote\专升本\C.assets\变量的存储类型_静态局部变量应用举例_1.png" style="zoom:50%;" />
+<img src="C.assets\变量的存储类型_静态局部变量应用举例_1.png" style="zoom:50%;" />
 
 
 
@@ -2003,9 +2003,9 @@ int i, j, k, arr[i][j][k];
 *(*(*(arr + i) +j) +k) == arr[i][j][k]
 ```
 
-<img src="D:\TyporaNote\专升本\C.assets\二维数组元素不同表示形式.png" style="zoom:75%;" />
+<img src="C.assets\二维数组元素不同表示形式.png" style="zoom:75%;" />
 
-<img src="D:\TyporaNote\专升本\C.assets\二维数组元素不同表示形式01.png" style="zoom:75%;" />
+<img src="C.assets\二维数组元素不同表示形式01.png" style="zoom:75%;" />
 
 
 
@@ -2665,8 +2665,8 @@ union xyz
 
 ###### 12.1.1 文件概念
 
-- ![](D:\TyporaNote\专升本\C.assets\文件概念.png)
-- <img src="D:\TyporaNote\专升本\C.assets\文件概念1.png" style="zoom:80%;" />
+- ![](C.assets\文件概念.png)
+- <img src="C.assets\文件概念1.png" style="zoom:80%;" />
 
 
 
@@ -2674,8 +2674,8 @@ union xyz
 
 ###### 12.1.2 文件简单分类
 
-- ![](D:\TyporaNote\专升本\C.assets\文件分类.png)
-- ![](D:\TyporaNote\专升本\C.assets\文件分类1.png)
+- ![](C.assets\文件分类.png)
+- ![](C.assets\文件分类1.png)
 
 
 
@@ -2687,8 +2687,8 @@ union xyz
 
 ###### 12.2.1 定义文件指针
 
-- ![](D:\TyporaNote\专升本\C.assets\文件操作.png)
-- ![](D:\TyporaNote\专升本\C.assets\文件操作1.png)
+- ![](C.assets\文件操作.png)
+- ![](C.assets\文件操作1.png)
 
 
 
@@ -2696,7 +2696,7 @@ union xyz
 
 ###### 12.2.2 文件的打开
 
-- ![](D:\TyporaNote\专升本\C.assets\文件操作2.png)
+- ![](C.assets\文件操作2.png)
 
 | 打开方式 |  含义  |                           说明                           |
 | :------: | :----: | :------------------------------------------------------: |
@@ -2719,9 +2719,9 @@ union xyz
 
 ###### 12.2.3 文件的操作
 
-<img src="D:\TyporaNote\专升本\C.assets\文件操作3.png" style="zoom:80%;" />
+<img src="C.assets\文件操作3.png" style="zoom:80%;" />
 
-<img src="D:\TyporaNote\专升本\C.assets\文件操作4.png" style="zoom:60%;" />
+<img src="C.assets\文件操作4.png" style="zoom:60%;" />
 
 
 
@@ -2729,7 +2729,7 @@ union xyz
 
 ###### 12.2.4 文件的关闭
 
-<img src="D:\TyporaNote\专升本\C.assets\文件操作5.png" style="zoom:80%;" />
+<img src="C.assets\文件操作5.png" style="zoom:80%;" />
 
 
 
@@ -2777,7 +2777,256 @@ union xyz
   }
   ```
 
-  
+
+
+
+
+
+### 13. 链表
+
+
+
+##### 13.1 链表的概念
+
+
+
+###### 13.1.1 概念
+
+链表的每个节点都有两个部分：
+
+- 数据区和指针区。前者用来存储数据，后者用来存储指向下一个节点的指针；
+- 我们使用 malloc() 函数来为每个节点分配内存；
+- 节点的头部只含有指向第一个节点的指针;
+- 存储在栈区的 head 指向了存储在堆区的节点;
+- 堆区的节点又互相连接，形成链状的结构;
+- 最后一个节点的指针区被赋值为 NULL，标明了链表的结束。
+
+
+
+###### 13.1.2 数组相关
+
+- 数组的缺点：
+  1. 正常情况下，创建的数组为固定大小的静态数组，当数组的数据内容出现增删，需要手动修改大小；
+  2. 如果一次性创建足够大的数组，会浪费内存空间；
+  3. 动态数组的创建（不会），麻烦；
+  4. 数组的内存空间是连续的，当需要添加或删除某一个元素时，其新元素之后的所有数组元素，需要逐一遍历更换内存地址，性能消耗大；
+- 数组的优点：
+  1. 数组的内存空间是连续的，直接通过数组小标查找数组元素，很高效；
+
+
+
+###### 13.1.3 链表相关
+
+- 链表优点：
+  1. 链表的内存空间是非连续的，它们通过链表中的指针域，存储了下一个的链表的首地址，以此达到数据表相连；
+  2. 插入或删除指定链表时，只需要将新链表，以及前后链表的首地址和指针域进行相关改动即可，不会影响到所有的链表；
+  3. 只需要找到第一个链表节点，就能顺着指针域找到所有的链表；
+- 链表缺点：
+  1. 查找指定链表节点，需要从第一个节点顺着指针域一个个找下去，消耗性能大，远不及数组直接通过下标定位；
+  2. 当在整个链表的第一节点前插入新节点，原来找到的链表首节点，就不再是首节点，需要重新找；
+  3. 链表的每个节点都需要一块内存空间存储下一个节点的首地址；
+
+
+
+###### 13.1.4 链表分类
+
+1. 内存类型区分：
+   - 静态链表
+   - 动态链表：使用malloc()
+2. 功能结构区分：
+   - 单向链表
+   - 双向链表
+   - 循环链表
+   - 单向循环链表
+   - 双向循环链表
+
+
+
+##### 13.2 静态链表
+
+
+
+###### 13.2.1 静态链表的结构
+
+```c
+struct Node
+{
+    int data; //数据域
+    struct Node* next; //指针域，用于存储下一个节点的首地址
+};
+
+int main()
+{
+    // 初始化创建静态链表节点
+    struct Node Node1 = {1, NULL};
+    struct Node Node2 = {2, NULL};
+    struct Node Node3 = {3, NULL};
+
+    // 将Node2的首地址存入Node1的next指针地址变量内
+    Node1.next = &Node2;
+    Node2.next = &Node3;
+    
+    return 0;
+}
+```
+
+
+
+###### 13.2.2 遍历打印静态链表
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node
+{
+    int data; //数据域
+    struct Node* next; //指针域，用于存储下一个节点的首地址
+};
+
+void printList()
+{
+    struct Node node1 = {1, NULL};
+    struct Node node2 = {2, NULL};
+    struct Node node3 = {3, NULL};
+
+    // 将Node2的首地址存入Node1的next指针地址变量内
+    node1.next = &node2;
+    node2.next = &node3;
+
+    // 遍历链表
+    // 先定义一个辅助指针变量
+    struct Node *pCurrent = &node1;
+
+    while (pCurrent != NULL)
+    {
+        // 将这个指针指向的内存空间中的节点元素打印
+        printf("%d\n", pCurrent->data);
+        // 打印后，将节点的指针域内存放的下一个节点首地址，赋值给pCurrent，从而找到下一个链表节点
+        pCurrent = pCurrent->next;
+    }
+}
+
+int main()
+{
+    printList();
+    system("pause");
+
+    return 0;
+}
+```
+
+
+
+###### 13.3 动态链表(模块化)
+
+```c
+//
+// Created by FHang on 2021/3/29.
+//
+
+/*
+ * 动态创建链表
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node
+{
+    int data; //数据域
+    struct Node *next; //指针域
+};
+
+// 创建链表
+struct Node *createList()
+{
+    // headNode成为结构体变量
+    struct Node *headNode = (struct Node*)malloc(sizeof(struct Node));
+    // 变量使用前，需要初始化
+    // headNode->data = 1;
+    headNode->next = NULL;
+
+    return headNode;
+}
+
+// 创建节点
+struct Node *createNode(int data)
+{
+    struct Node *newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = NULL;
+
+    return newNode;
+}
+
+// 插入节点(表头法插入)
+void insertNodeByHead(struct Node *headNode, int data)
+{
+    // 创建新的插入节点
+    struct Node *newNode = createNode(data);
+    newNode->next = headNode->next;
+    headNode->next = newNode;
+}
+
+// 删除指定链表
+void deleteNode(struct Node *headNode, int posData)
+{
+    struct Node *posNode = headNode->next;
+    struct Node *posNodeFront = headNode;
+
+    if (posNode == NULL)
+    {
+        printf("Can't Delete Null Linklist !\n");
+    }
+    else
+    {
+        while (posNode->data != posData)
+        {
+            posNodeFront = posNode;
+            posNode = posNodeFront->next;
+
+            if (posNode == NULL)
+            {
+                printf("Can't Find This Linklist !\n");
+                return;
+            }
+        }
+
+        posNodeFront->next = posNode->next;
+        free(posNode);
+    }
+}
+
+// 打印
+void printList(struct Node *headNode)
+{
+    struct Node *pMove = headNode->next;
+    while (pMove != NULL)
+    {
+        printf("Data=%d\n", pMove->data);
+        pMove = pMove->next;
+    }
+
+    printf("\n");
+}
+
+int main()
+{
+    struct Node *list = createList();
+    insertNodeByHead(list, 1);
+    insertNodeByHead(list, 2);
+    insertNodeByHead(list, 3);
+    printList(list);
+
+    deleteNode(list, 2);
+    printList(list);
+
+    system("pause");
+
+    return 0;
+}
+```
 
 
 
@@ -2955,7 +3204,7 @@ int main()
 
 #### 7. 求多项式的值
 
-![](D:\TyporaNote\专升本\C.assets\例题7.png)
+![](C.assets\例题7.png)
 
 ```c
 #include <stdio.h>
