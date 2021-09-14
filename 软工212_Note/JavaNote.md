@@ -202,3 +202,145 @@ boolean flag;
 flag = true;
 ```
 
+
+
+#### 2.4 Java输入
+
+- 语法
+
+```java
+import java.util.Scanner;
+
+public class Demo()
+{
+    public static void main(String[] args)
+    {
+        Scanner scan = new Scanner(System.in);
+        
+        int a = scan.nextInt();
+    }
+}
+```
+
+- Scanner对象的方法说明
+
+  | 方法         | 说明                       |
+  | ------------ | -------------------------- |
+  | nextByte()   | 读取byte类型的整数         |
+  | nextShort()  | 读取short类型的整数        |
+  | nextInt()    | 读取int类型的整数          |
+  | nextLong()   | 读取long类型的整数         |
+  | nextFloat()  | 读取float类型的数          |
+  | nextDouble() | 读取double类型的数         |
+  | next()       | 读取字符串，遇到空白符结束 |
+  | nextLine()   | 读取文本，回车结束         |
+
+
+
+#### 2.5 三目运算符
+
+- 语法：`a > b ? a : b;`
+
+- 实例：在三个数中，找到最大数；
+
+  ```java
+  import java.util.Scanner;
+  
+  public class Demo()
+  {
+      public static void main(String[] args)
+      {
+          int a = 10, b = 20, c = 30, temp, max;
+          temp = a > b ? a : b;
+          max = temp > c ? temp : c;
+      }
+  }
+  ```
+
+
+
+#### 2.6 Java例题
+
+##### 2.6.1 输入三位数，将各个位数取出
+
+```java
+import java.util.Scanner;
+
+public class Demo2
+{
+    public static void main(String[] args)
+    {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("输入三位数：");
+        int EnterNum = scanner.nextInt();
+
+        int GW, SW, BW;
+
+        GW = (EnterNum % 10);
+        SW = (EnterNum % 100) / 10;
+        BW = (EnterNum / 100);
+
+        System.out.println("个位：" + GW + " 十位：" + SW + " 百位：" + BW);
+    }
+}
+```
+
+
+
+##### 2.6.2 将两个变量值互换
+
+###### 2.6.2.1 设临时变量
+
+```java
+public class Demo
+{
+    public static void main(String[] args)
+    {
+        int a = 10, b = 20, temp;
+        temp = a;
+        a = b;
+        b = temp;
+    }
+}
+```
+
+
+
+###### 2.6.2.2 两数加减
+
+```java
+public class Demo
+{
+    public static void main(String[] args)
+    {
+        int a = 10, b = 20;
+        b = a + b;
+        a = b - a;
+        b = b - a;
+    }
+}
+```
+
+
+
+###### 2.6.2.3 异或
+
+```java
+public class Demo
+{
+    public static void main(String[] args)
+    {
+        int a = 1, b = 2;
+        a = a ^ b;
+        b = a ^ b;
+        a = a ^ b;
+    }
+}
+
+//  a = 1 = 01, b = 2 = 10;
+# a = a ^ b; //  01 - 10 => 00 == a = 0;
+# b = a ^ b; // 00 - 10 => 01 == b = 1;
+# a = a ^ b; // 00 - 01 => 10 == a = 2
+```
+
