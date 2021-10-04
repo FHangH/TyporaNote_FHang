@@ -1954,15 +1954,335 @@ int main()
 
 - 功能描述：给string字符串赋值
 
-  | 赋值的函数原型                        |      |
-  | ------------------------------------- | ---- |
-  | `string &operator=(const char *s)`;   |      |
-  | `string &operator=(const string &s);` |      |
-  | `string &operator=(char c);`          |      |
-  | `string &assign`                      |      |
-  | ``                                    |      |
-  | ``                                    |      |
-  | ``                                    |      |
+  | 赋值的函数原型                          |                                        |
+  | --------------------------------------- | -------------------------------------- |
+  | `string &operator=(const char *s)`;     | char *类型字符串，赋值给当前的字符串   |
+  | `string &operator=(const string &s);`   | 字符串s，赋值给当前的字符串            |
+  | `string &operator=(char c);`            | 字符，赋值给当前字符串                 |
+  | `string &assign(const char *s);`        | 字符串s，赋值给当前的字符串            |
+  | `string &assign(const char *s, int n);` | 字符串s的前n个字符，赋值给当前的字符串 |
+  | `string &assign(const string &s);`      | 字符串s，赋值给当前的字符串            |
+  | `string &assign(int n, char c);`        | 用n个字符c，赋值给当前字符串           |
+
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/9/21 14:56
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  void demo()
+  {
+      string string1;
+      string1 = "hello world";
+      cout << "string1 = " << string1 << endl;
+  
+      string string2;
+      string2 = string1;
+      cout << "string2 = " << string2 << endl;
+  
+      string string3;
+      string3 = "A";
+      cout << "string3 = " << string3 << endl;
+  
+      string string4;
+      string4.assign("hello world");
+      cout << "string4 = " << string4 << endl;
+  
+      string string5;
+      string5.assign("hello world", 3);
+      cout << "string5 = " << string5 << endl;
+  
+      string string6;
+      string6.assign(6, 'a');
+      cout << "string6 = " << string6 << endl;
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.1.4 string字符拼接
+
+
+
+- 功能描述：实现字符串末尾拼接字符串
+
+  | 函数原型                                           |                                                     |
+  | -------------------------------------------------- | --------------------------------------------------- |
+  | `string &operator+=(const char *str);`             | 重载+=操作符                                        |
+  | `string &operator+=(const char c);`                | 重载+=操作符                                        |
+  | `string &operator+=(const string &str);`           | 重载+=操作符                                        |
+  | `string &append(const char *s);`                   | 字符串s，连接到当前字符串的末尾                     |
+  | `string &append(const char *s, int n);`            | 字符串s的前n个字符，连接到当前字符串的末尾          |
+  | `string &append(const string &s);`                 | 等同于，`string &operator+=(const string &str);`    |
+  | `string &append(const string &s, int pos, int n);` | 字符串s中从pos开始取n个字符，连接到当前字符串的末尾 |
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/9/21 15:12
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  void demo()
+  {
+      string string1 = "Hello ";
+      string1 += "World";
+      cout << "String1 = " << string1 << endl;
+  
+      string string2 = "Hi ";
+      string2 += string1;
+      cout << "String2 = " << string2 << endl;
+  
+      string string3 = "Age ";
+      string3 += '8';
+      cout << "String3 = " << string3 << endl;
+  
+      string string4 = "Hello ";
+      string4.append("World");
+      cout << "String4 = " << string4 << endl;
+  
+      string string5 = "Hi ";
+      string5.append(string4);
+      cout << "String5 = " << string5 << endl;
+  
+      string string6;
+      string6.append("Hello World", 4);
+      cout << "String6 = " << string6 << endl;
+  
+      string string7 = string5;
+      string7.append("Hello World", 5, 6);
+      cout << "String7 = " << string7 << endl;
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+##### 3.1.5 string查找替换
+
+
+
+- 功能描述：
+
+  1. 查找：查找指定字符串是否存在
+
+  2. 替换：在指定的位置替换字符串
+
+     | 函数原型                                                    |                                          |
+     | ----------------------------------------------------------- | ---------------------------------------- |
+     | `int find(const string &str, int pos = 0) const;`           | 查找str第一次出现的位置，默认pos从头开始 |
+     | `int find(const char *s, int pos = 0) const;`               | 查找s第一次出现的位置，默认pos从头开始   |
+     | `int find(const char *s, int pos, int n) const;`            | 从pos查找s的前n个字符第一次位置          |
+     | `int find(const char *c, int pos = 0) const;`               | 查找字符c第一次出现位置                  |
+     | `int rfind(const string &str, int pos = npos) const;`       | 查找str最后一次位置，从pos开始找         |
+     | `int rfind(const char *s, int pos = npos) const;`           | 查找s最后一次位置，从pos开始找           |
+     | `int rfind(const char *s, int pos, int n) const;`           | 从pos查找s的前n个字符最后一次位置        |
+     | `int rfind(const char *c, int pos = 0) const;`              | 查找字符c最后一次出现位置                |
+     | `string &replace(int pos, int n, const string &str) const;` | 替换从pos开始n个字符为字符串str          |
+     | `string &replace(int pos, int n, const char *s) const;`     | 替换从pos开始n个字符为字符串s            |
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/9/21 15:46
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  void findString()
+  {
+      string string1 = "AABBCCBBAA";
+      int pos1 = string1.find("BB");
+      cout << "BB pos1 = " << pos1 << endl;
+  
+      int pos2 = string1.rfind("BB");
+      cout << "BB pos2 = " << pos2 << endl;
+  }
+  
+  void replaceString()
+  {
+      string string1 = "ABCDE";
+      string1.replace(2, 3, "123");
+      cout << "String1 = " << string1 << endl;
+  }
+  
+  int main()
+  {
+      findString();
+      replaceString();
+      return 0;
+  }
+  ```
+
+
+
+- 总结：
+  - `find`是从左往右查，`rfind`是从右往左查
+  - `find`查到字符后，返回字符的位置，找不到返回-1
+  - `replace`在替换时，需指定起始位置，替换字符数，替换字符
+
+
+
+##### 3.1.6 string字符比较
+
+
+
+- 功能描述：字符串之间比较
+
+- 比较方式：按照字符编码ACSII进行比较
+
+  - `=` 返回 `0`
+  - `>` 返回 `1`
+  - `<` 返回 `-1`
+
+  | 函数原型                                |                 |
+  | --------------------------------------- | --------------- |
+  | `int compare(const string &str) const;` | 与字符串str比较 |
+  | `int compare(const char *s) const;`     | 与字符串s比较   |
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/9/21 16:12
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  void demo()
+  {
+      string string1 = "Hello";
+      string string2 = "World";
+  
+      if (string1.compare(string2) == 0)
+      {
+          cout << "string1 string2" << " = " << endl;
+      }
+      else
+      {
+          cout << "string1 string2" << " != " << endl;
+      }
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.1.7 string字符存取
+
+
+
+- string中单个字符串存取方式有两种：
+
+  | 方式                       |                    |
+  | -------------------------- | ------------------ |
+  | `char &operator[](int n);` | 通过`[]`方式取字符 |
+  | `char &at(int n);`         | 通过`at`取字符     |
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/9/21 16:23
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  string string1 = "ABCDEFG";
+  
+  void demo1()
+  {
+      for (int i = 0; i < string1.size(); ++i)
+      {
+          cout << string1[i] << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo2()
+  {
+      for (int i = 0; i < string1.size(); ++i)
+      {
+          cout << string1.at(i) << " ";
+      }
+      cout << endl;
+  }
+  
+  int main()
+  {
+      demo1();
+      demo2();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.1.8 string插入删除
+
+
+
+- 功能描述：对`string`字符串进行`插入`和`删除`字符操作
+
+  | 函数原型                                      |                        |
+  | --------------------------------------------- | ---------------------- |
+  | `string &insert(int pos, const char *s);`     | 插入字符串             |
+  | `string &insert(int pos, const string &str);` | 插入字符串             |
+  | `string &insert(int pos, int n, char c);`     | 在指定位置插入n个字符c |
+  | `string &insert(int pos, int n = npos);`      | 删除从pos开始的n个字符 |
+
+
+
+- 示例：
+
+  ```c++
+  ```
 
   
 

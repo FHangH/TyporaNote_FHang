@@ -344,3 +344,597 @@ public class Demo
 # a = a ^ b; // 00 - 01 => 10 == a = 2
 ```
 
+
+
+
+
+#### 2.7 switch选择语句
+
+
+
+##### 2.7.1 例题1
+
+- 学号-姓名-爱好-出生日期，以及是否是闰年
+
+```java
+import java.util.Scanner;
+
+class MySelf
+{
+   private final String stu_ID;
+   private final String stu_Name;
+   private final String stu_Hobby;
+   private final int stu_Date;
+
+   MySelf()
+   {
+       stu_ID = "82104322666";
+       stu_Name = "FHang";
+       stu_Hobby = "发呆";
+       stu_Date = 1998;
+   }
+
+    public String getStu_ID() {
+        return stu_ID;
+    }
+
+    public String getStu_Name() {
+        return stu_Name;
+    }
+
+    public String getStu_Hobby() {
+        return stu_Hobby;
+    }
+
+    public int getStu_Date() {
+        return stu_Date;
+    }
+
+    public String getIsLeapYear()
+    {
+        return (stu_Date % 4 == 0 && stu_Date % 100 != 0) || (stu_Date % 400 == 0) ? "是" : "不是";
+    }
+}
+
+public class Demo3
+{
+    public static void main(String[] args)
+    {
+        Scanner scanner = new Scanner(System.in);
+        MySelf mySelf = new MySelf();
+
+        while (true)
+        {
+            System.out.println("1_学号,2_姓名,3_爱好,4_出生日期,<其它_退出>");
+            System.out.print("选择: ");
+            int num = scanner.nextInt();
+
+            switch (num) {
+                case 1 -> System.out.println("学号: " + mySelf.getStu_ID());
+                case 2 -> System.out.println("姓名: " + mySelf.getStu_Name());
+                case 3 -> System.out.println("爱好: " + mySelf.getStu_Hobby());
+                case 4 -> System.out.println("出生日期: " + mySelf.getStu_Date() + " - 闰年: " + mySelf.getIsLeapYear());
+                default -> System.exit(0);
+            }
+        }
+    }
+}
+```
+
+
+
+##### 2.7.2 例题2
+
+- 输入一个年份，判断是否是闰年以及每月的天数
+
+```java
+import java.util.Scanner;
+
+class Prophet
+{
+    int year;
+    boolean isLeapYear;
+
+    public void CalLeapYear(int year)
+    {
+        this.year = year;
+        isLeapYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+        String leapYear = isLeapYear ? "是闰年" : "不是闰年";
+        System.out.println(year + leapYear);
+    }
+
+    public void CalDaysEveryMonth()
+    {
+        System.out.println(this.year + "的每月天数：");
+        int[] days = {31,28,31,30,31,30,31,31,30,31,30,31};
+        for (int i = 0; i < days.length; ++i)
+        {
+            if (this.isLeapYear && i == 1)
+            {
+                System.out.println("第" + (i + 1) + "月: " + (days[i] + 1));
+            }
+            else
+            {
+                System.out.println("第" + (i + 1) + "月: " + days[i]);
+            }
+        }
+    }
+}
+
+public class Demo4
+{
+    public static void main(String[] args)
+    {
+        Scanner scanner = new Scanner(System.in);
+        Prophet pro = new Prophet();
+
+        while (true)
+        {
+            System.out.print("输入年份<0_退出>：");
+            int num = scanner.nextInt();
+            if (num == 0)
+            {
+                System.exit(0);
+            }
+            else
+            {
+                pro.CalLeapYear(num);
+                pro.CalDaysEveryMonth();
+            }
+        }
+    }
+}
+```
+
+
+
+##### 2.7.3 例题3
+
+- 设计一个加减计算的答题系统，随机生成题目，最少1题，最多10题，并最终返回答题正确数
+
+```java
+import java.util.Scanner;
+import java.util.Random;
+
+class CalculatorSystem
+{
+    private int questionCount;
+    private int scoreCount;
+
+    private enum CalculateOperation
+    {
+        ADD, SUB, /*MULTI, DIVIDE*/
+    }
+
+    Scanner scanner = new Scanner(System.in);
+    Random random = new Random(System.currentTimeMillis());
+
+    CalculatorSystem()
+    {
+        this.scoreCount = 0;
+    }
+
+    public void CalStart()
+    {
+        System.out.println("<<-- 输入题数(最少1题--最多10题) -->>");
+        System.out.print("输入>>");
+        questionCount = scanner.nextInt();
+
+        if (questionCount < 1 || questionCount > 10)
+        {
+            questionCount = questionCount < 1 ? 1 : 10;
+        }
+
+        CalRandomQuestion();
+    }
+
+    public void CalRandomQuestion()
+    {
+        int tempA, tempB, inputC, a, b, c;
+        CalculateOperation calOperation;
+
+        for (int i = 1; i <= questionCount; ++i)
+        {
+            System.out.print("第" + i + "题: ");
+            int curRand = random.nextInt(2);
+
+            calOperation = CalculateOperation.class.getEnumConstants()[curRand];
+            tempA = random.nextInt(101);
+            tempB = random.nextInt(101);
+            a = Math.max(tempA, tempB);
+            b = Math.min(tempB, tempA);
+
+            switch (calOperation)
+            {
+                case ADD ->
+                        {
+                            c = a + b;
+                            System.out.print(a + "+" + b + "=");
+                            inputC = scanner.nextInt();
+                            CalCheckAnswer(c, inputC);
+                        }
+                case SUB ->
+                        {
+                            c = a - b;
+                            System.out.print(a + "-" + b + "=");
+                            inputC = scanner.nextInt();
+                            CalCheckAnswer(c, inputC);
+                        }
+            }
+        }
+
+        CalSumScore();
+    }
+
+    public void CalCheckAnswer(int c, int inputC)
+    {
+        String printLog = (c == inputC) ? "正确" : "错误";
+        boolean isRight = (c == inputC);
+
+        if (isRight)
+        {
+            this.scoreCount++;
+        }
+        System.out.println(printLog);
+    }
+
+    public void CalSumScore()
+    {
+        System.out.println("答对" + scoreCount + "题");
+        scoreCount = 0;
+        System.out.println();
+    }
+
+    public void CalEnd()
+    {
+        System.out.println("<<-- 已退出答题系统 -->>");
+    }
+}
+
+public class Demo5
+{
+    public static void main(String[] args)
+    {
+        Scanner scanner = new Scanner(System.in);
+        CalculatorSystem calSys = new CalculatorSystem();
+
+        while (true)
+        {
+            System.out.println("<<-- (Y/y_开始)--(N/n_结束) -->>");
+            System.out.print("输入>>");
+            String inputChar = scanner.next();
+
+            if (inputChar.equalsIgnoreCase("Y"))
+            {
+                calSys.CalStart();
+            }
+            else if (inputChar.equalsIgnoreCase("N"))
+            {
+                calSys.CalEnd();
+                System.exit(1);
+            }
+            else
+            {
+                System.out.println("输入正确的选项");
+            }
+        }
+    }
+}
+```
+
+
+
+
+
+##### 2.7.4 例题4
+
+- 提示输入信息—显示信息-退出，显示信息可返回上一级信息提示
+
+```java
+import java.util.Scanner;
+
+class PersonInfo
+{
+    private String fh_ID;
+    private String fh_Name;
+    private String fh_Hobby;
+    private int fh_Date;
+
+    Scanner scanner = new Scanner(System.in);
+
+    public String getFh_ID() {
+        return fh_ID;
+    }
+    public void setFh_ID(String fh_ID) {
+        this.fh_ID = fh_ID;
+    }
+
+    public String getFh_Name() {
+        return fh_Name;
+    }
+    public void setFh_Name(String fh_Name) {
+        this.fh_Name = fh_Name;
+    }
+
+    public String getFh_Hobby() {
+        return fh_Hobby;
+    }
+    public void setFh_Hobby(String fh_Hobby) {
+        this.fh_Hobby = fh_Hobby;
+    }
+
+    public int getFh_Date() {
+        return fh_Date;
+    }
+    public void setFh_Date(int fh_Date) {
+        this.fh_Date = fh_Date;
+    }
+
+    public void StartPersonInfo()
+    {
+        while (true)
+        {
+            System.out.println("<-- 1_输入信息,2_显示信息,3_退出 -->");
+            System.out.print("选择>>");
+            int num = scanner.nextInt();
+            switch (num)
+            {
+                case 1 -> InputPersonInfo();
+                case 2 -> ShowPersonInfoMenu();
+                case 3 -> ExitPersonInfo();
+            }
+        }
+    }
+
+    public void ShowPersonInfoMenu()
+    {
+        System.out.println("<-- 1_学号,2_姓名,3_爱好,4_年份,5_返回上一级 -->");
+
+        while (true)
+        {
+            System.out.print("选择>>");
+            int num = scanner.nextInt();
+
+            switch (num)
+            {
+                case 1 -> System.out.println("ID: " + getFh_ID());
+                case 2 -> System.out.println("姓名: " + getFh_Name());
+                case 3 -> System.out.println("爱好: " + getFh_Hobby());
+                case 4 -> System.out.println("生日: " + getFh_Date());
+                case 5 -> StartPersonInfo();
+            }
+        }
+    }
+
+    public void InputPersonInfo()
+    {
+        System.out.print("输入ID>>");
+        setFh_ID(scanner.next());
+
+        System.out.print("输入姓名>>");
+        setFh_Name(scanner.next());
+
+        System.out.print("输入爱好>>");
+        setFh_Hobby(scanner.next());
+
+        System.out.print("输入生日>>");
+        setFh_Date(scanner.nextInt());
+    }
+
+    public void ExitPersonInfo()
+    {
+        System.out.println("<-- 已退出 -->");
+        System.exit(1);
+    }
+}
+
+public class Demo6
+{
+    public static void main(String[] args)
+    {
+        new Scanner(System.in);
+        PersonInfo personInfo = new PersonInfo();
+
+        personInfo.StartPersonInfo();
+    }
+}
+```
+
+
+
+
+
+#### 2.8 for循环
+
+
+
+##### 2.8.1 例题1
+
+- 1 - 1000内的水仙花数
+
+```java
+class FhMath
+{
+    int B, S, G;
+
+    public void CalShuiXianHua()
+    {
+        for (int i = 100; i <= 900; ++i)
+        {
+            B = i / 100;
+            S = (i / 10) % 10;
+            G = i % 10;
+            if (Math.pow(B, 3) + Math.pow(S, 3) + Math.pow(G, 3) == i)
+            {
+                System.out.println("水仙花数: " + i);
+            }
+        }
+    }
+}
+
+public class Demo8
+{
+    public static void main(String[] args)
+    {
+        FhMath fhMath = new FhMath();
+        fhMath.CalShuiXianHua();
+    }
+}
+```
+
+
+
+
+
+##### 2.8.2 例题2
+
+- 公鸡5元一个，母鸡3元一个，三只小鸡一元钱，现有100元，要买100只鸡，怎么买？
+
+```java
+class Swap
+{
+    public void swap(int x, int y, int z)
+    {
+        for (x = 1; x <= 20; ++x)
+        {
+            for (y = 1; y <= 33; ++y)
+            {
+                z = 100 - x - y;
+                if (x * 5 + y * 3 + z / 3.0 == 100.0)
+                {
+                    System.out.println("X= " + x + " Y= " + y + " Z= " + z);
+                }
+            }
+        }
+    }
+}
+
+public class Demo9
+{
+    public static void main(String[] args)
+    {
+        Swap swap = new Swap();
+        swap.swap(1, 2, 3);
+    }
+}
+```
+
+
+
+##### 2.8.3 例题3
+
+- 计算5的阶乘值的和（递归）
+
+```java
+class MathJie
+{
+    public int fact(int n)
+    {
+        if (n == 0 || n == 1)
+        {
+            return 1;
+        }
+        else
+        {
+            return n * fact(n - 1);
+        }
+    }
+
+    public int sum(int n)
+    {
+        if (n == 1)
+        {
+            return fact(n);
+        }
+        else
+        {
+            return fact(n) + fact(n - 1);
+        }
+    }
+}
+
+public class Demo10
+{
+    public static void main(String[] args)
+    {
+        MathJie mathJie = new MathJie();
+        int S;
+        S = mathJie.sum(5);
+        System.out.println(S);
+    }
+}
+```
+
+
+
+
+
+#### 2.9 Java对象
+
+
+
+##### 2.9.1 例题1
+
+- 创建一个宠物类，按提示输入相关信息，并最终打印出来
+
+```java
+import java.util.Scanner;
+
+class Pet
+{
+    private String name;
+    private String type;
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    Scanner scanner = new Scanner(System.in);
+
+    Pet()
+    {
+        TipInfo();
+
+        System.out.print("输入名称>>");
+        setName(scanner.next());
+
+        System.out.print("输入类别>>");
+        setType(scanner.next());
+
+        PrintPetInfo();
+    }
+
+    void TipInfo()
+    {
+        System.out.println("<-- 输入宠物相关信息 -->");
+    }
+
+    void PrintPetInfo()
+    {
+        System.out.println("<-- 打印宠物相关信息 -->");
+        System.out.println("宠物名称: " + getName());
+        System.out.println("宠物类别: " + getType());
+    }
+}
+
+public class Demo10
+{
+    public static void main(String[] args)
+    {
+        new Pet();
+    }
+}
+```
+
+
+
