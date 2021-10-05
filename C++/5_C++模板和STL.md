@@ -2275,14 +2275,344 @@ int main()
   | `string &insert(int pos, const char *s);`     | 插入字符串             |
   | `string &insert(int pos, const string &str);` | 插入字符串             |
   | `string &insert(int pos, int n, char c);`     | 在指定位置插入n个字符c |
-  | `string &insert(int pos, int n = npos);`      | 删除从pos开始的n个字符 |
+  | `string &erase(int pos, int n = npos);`       | 删除从pos开始的n个字符 |
 
 
 
 - 示例：
 
   ```c++
+  //
+  // Created by FHang on 2021/9/21 16:35
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  void demoInsert()
+  {
+      string str1 = "Hello ";
+      string str2 = "world ";
+  
+      str1.insert(6, "world ");
+      cout << "str1 = " << str1 << endl;
+  
+      str1.insert(12, str2);
+      cout << "str1 = " << str1 << endl;
+  
+      str1.insert(18, 6, '!');
+      cout << "str1 = " << str1 << endl;
+  }
+  
+  void demoDelete()
+  {
+      string str3 = "Hello World";
+      str3.erase(5, 6);
+      cout << "str3 = " << str3 << endl;
+  }
+  
+  int main()
+  {
+      demoInsert();
+      demoDelete();
+      return 0;
+  }
   ```
+  
+- 总结：插入`insert()`和删除`erase()`都是从下标0开始的
+
+
+
+
+
+##### 3.1.9 string获取字串
+
+
+
+- 功能描述：从字符串中获得想要的一段子字符串
+
+  | 函数原型                                          |                                    |
+  | ------------------------------------------------- | ---------------------------------- |
+  | `string substr(int pos = 0, int n = npos) const;` | 返回由pos开始的n个字符组成的字符串 |
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/5 14:59
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  void subStringDemo()
+  {
+      string str1 = "Hello World";
+  
+      str1 = str1.substr(0, 5);
+      cout << "str1 = " << str1 << endl;
+  }
+  
+  void getEmailTypeInfo()
+  {
+      string str2 = "752972182@qq.com";
+  
+      int pos = str2.find("@");
+      string str3 = str2.substr(pos + 1, 2);
+      str2 = str2.substr(0, pos);
+  
+      cout << "str2 email user = " << str2 << endl;
+      cout << "str3 email type = " << str3 << endl;
+  }
+  
+  int main()
+  {
+      subStringDemo();
+      getEmailTypeInfo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+#### 3.2 vector容器
+
+
+
+##### 3.2.1 vector基本概念
+
+
+
+- 功能：vector数据结构和`数组`非常相似，也称为`单端数组`
+
+- 与数组的区别：`数组`是静态空间，`vector`可以动态扩展
+
+- 动态扩展：并非是在原有的空间后面，连续开辟新空间；而是在另一个更大的内存空间中`重新开辟`，并`拷贝`原来的容器数据，同时`释放原容器`
+
+- vector容器的迭代器是支持随机访问的迭代器
+
+  | vector迭代器方法介绍 `vector<T> v;` |                            |
+  | ----------------------------------- | -------------------------- |
+  | `v.rend();`                         | 容器第一个元素之前的地址   |
+  | `v.end();`                          | 容器最后一个元素之后的地址 |
+  | `v.begin();`                        | 容器第一个元素自身的地址   |
+  | `v.rbegin();`                       | 容器最后一个元素之前的地址 |
+  | `v.insert();`                       | 容器中插入一个元素         |
+
+
+
+
+
+##### 3.2.2 vector构造函数
+
+
+
+- 功能描述：创建vector容器
+
+  | 函数原型 `vector<T> v;`       |                                                              |
+  | ----------------------------- | ------------------------------------------------------------ |
+  | `vector<T> v;`                | 采用模板类实现，默认构造函数                                 |
+  | `vector(v.begin(), v.end());` | 将 `[ v.begin(), v.end() )` 之间的元素拷贝给自身` [闭 开)区间` |
+  | `vector(n, elem);`            | 构造函数将 n个 元素拷贝给自身                                |
+  | `vector(const vector &vec);`  | 拷贝构造函数                                                 |
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/5 15:37
+  //
+  #include <iostream>
+  #include <vector>
+  
+  using namespace std;
+  
+  void printVector(vector<int> &v)
+  {
+      for (vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo1()
+  {
+      // 默认构造（无参）
+      vector<int> v1;
+  
+      for (int i = 0; i < 10; ++i)
+      {
+          v1.push_back(i);
+      }
+      printVector(v1);
+  
+      // 通过 [ ) 构造
+      vector<int> v2(v1.begin(), v1.end());
+      printVector(v2);
+  
+      // n个 elem构造
+      vector<int> v3(10, 1);
+      printVector(v3);
+  
+      // 拷贝构造
+      vector<int> v4(v1);
+      printVector(v4);
+  }
+  
+  int main()
+  {
+      demo1();
+  
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.2.3 vector赋值操作
+
+
+
+- 功能描述：给容器赋值
+
+  | 函数原型 `vector<T> v;`                |                                         |
+  | -------------------------------------- | --------------------------------------- |
+  | `vetor &operator=(const vector &vec);` | 重载`=` 操作符                          |
+  | `v.assign(v.begin, v.end);`            | 将 `[begin, end)`区间中的数据拷贝到自身 |
+  | `v.assign(n, elem);`                   | 将 n个 elem拷贝赋值给自身               |
+
+
+
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/5 16:08
+  //
+  #include <iostream>
+  #include <vector>
+  
+  using namespace std;
+  
+  void printVector(vector<int> &v)
+  {
+      for (vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      vector<int> v1;
+      for (int i = 0; i < 10; ++i)
+      {
+          v1.push_back(i);
+      }
+      printVector(v1);
+  
+      vector<int> v2 = v1;
+      printVector(v2);
+  
+      vector<int> v3(v1.begin(), v1.end());
+      printVector(v3);
+  
+      vector<int> v4(10, 1);
+      printVector(v4);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.2.4 vector容量大小
+
+
+
+- 功能描述：对vector容器的容量和大小进行操作
+
+  | 函数原型                 |                                                              |
+  | ------------------------ | ------------------------------------------------------------ |
+  | `empty();`               | 判断容器是否为空                                             |
+  | `capacity();`            | 获取容器的容量                                               |
+  | `size();`                | 获取容器中的元素个数                                         |
+  | `resize(int num);`       | 重新指定容器长度，若变长，默认填充；若变短，删除末尾超出容器长度的元素 |
+  | `resize(int num, elem);` | 重新指定容器长度，若变长，elem填充；若变短，删除末尾超出容器长度的元素 |
 
   
 
+- 示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/5 16:18
+  //
+  #include <iostream>
+  #include <vector>
+  
+  using namespace std;
+  
+  void printVector(vector<int> &v)
+  {
+      for (vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      vector<int> v1;
+      for (int i = 0; i < 5; ++i)
+      {
+          v1.push_back(i);
+      }
+      printVector(v1);
+  
+      if (v1.empty())
+      {
+          cout << "v1 is empty" << endl;
+      }
+      else
+      {
+          cout << "v1 not empty" << endl;
+          cout << "v1 size = " << v1.size() << endl;
+          cout << "v1 capacity = " << v1.capacity() << endl;
+      }
+  
+      v1.resize(10);
+      printVector(v1);
+  
+      v1.resize(15, 1);
+      printVector(v1);
+  
+      v1.resize(2);
+      printVector(v1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
