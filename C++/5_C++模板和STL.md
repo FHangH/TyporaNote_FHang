@@ -1,4 +1,4 @@
-# C++模板和STL
+#  	C++模板和STL
 
 
 
@@ -2615,4 +2615,315 @@ int main()
   }
   ```
 
+
+
+
+
+
+##### 3.2.5 vector插入删除
+
+
+
+- 功能描述：对vector容器进行插入、删除操作
+
+  | 函数原型                                           |                                              |
+  | -------------------------------------------------- | -------------------------------------------- |
+  | `push_back(elem);`                                 | 尾部插入元素 `elem`                          |
+  | `pop_back();`                                      | 删除最后一个元素                             |
+  | `insert(const_iterator pos, elem);`                | 迭代器指向位置`pos`，插入元素`elem`          |
+  | `insert(const_iterator pos, int count, elem);`     | 迭代器指向位置`pos`，插入`count`个元素`elem` |
+  | `erase(const_iterator pos);`                       | 删除迭代器指向位置`pos`的元素                |
+  | `erase(const_iterator start, const_iterator end);` | 删除迭代器选择的`start`到`end`之间的元素     |
+  | `clear();`                                         | 清空容器                                     |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/10 15:56
+  //
+  #include <iostream>
+  #include <vector>
   
+  using namespace std;
+  
+  void printVector(vector<int> &v)
+  {
+      for (vector<int>::iterator iterator = v.begin(); iterator != v.end(); ++iterator)
+      {
+          cout << *iterator << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo1()
+  {
+      // 尾插入
+      vector<int> v1;
+      v1.push_back(1);
+      v1.push_back(2);
+      v1.push_back(3);
+      v1.push_back(4);
+      v1.push_back(5);
+      printVector(v1);
+  
+      // 尾删除
+      v1.pop_back();
+      printVector(v1);
+  
+      // 迭代器指定位置插入
+      v1.insert(v1.begin(), 0);
+      printVector(v1);
+  
+      // 迭代器指定位置插入 指定数量 元素
+      v1.insert(v1.end(), 3, 5);
+      printVector(v1);
+  
+      // 删除迭代器指向位置的元素
+      v1.erase(v1.end() - 1);
+      printVector(v1);
+  
+      // 删除迭代器选择的start到end之间的元素
+      v1.erase(v1.begin() + 1, v1.end() - 2);
+      printVector(v1);
+  
+      // clear
+      v1.clear();
+      printVector(v1);
+  }
+  
+  int main()
+  {
+      demo1();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.2.6 vector数据存取
+
+
+
+- 功能描述：vector中的数据存取操作
+
+  | 函数原型         |                            |
+  | ---------------- | -------------------------- |
+  | `at(int index);` | 返回索引`index`所指的数据  |
+  | `operator[];`    | 返回索引`index`所指的数据  |
+  | `front();`       | 返回容器中第一个数据元素   |
+  | `back();`        | 返回容器中最后一个数据元素 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/10 16:20
+  //
+  #include <iostream>
+  #include <vector>
+  
+  using namespace std;
+  
+  void demo()
+  {
+      vector<int> v;
+  
+      for (int i = 0; i < 5; ++i)
+      {
+          v.push_back(i);
+      }
+  
+      for (int i = 0; i < v.size(); ++i)
+      {
+          cout << v[i] << " ";
+      }
+      cout << endl;
+  
+      for (int i = 0; i < v.size(); ++i)
+      {
+          cout << v.at(i) << " ";
+      }
+      cout << endl;
+  
+      cout << "Vector Front Elem: " << v.front() << endl;
+  
+      cout << "Vector Back Elem: " << v.back() << endl;
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.2.7 vector互换容器
+
+
+
+- 功能描述：实现两个容器内元素的互换
+
+  | 函数原型             |                               |
+  | -------------------- | ----------------------------- |
+  | `swap(otherVector);` | 将otherVector与本身的元素互换 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/10 16:30
+  //
+  #include <iostream>
+  #include <vector>
+  
+  using namespace std;
+  
+  void debugVector(vector<int> &v)
+  {
+      for (vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void debugVectorInfo(vector<int> &v)
+  {
+      cout << "Vector Capacity: " << v.capacity() << endl;
+      cout << "Vector Size: " << v.size() << endl;
+  }
+  
+  void demo1()
+  {
+      vector<int> v1;
+      vector<int> v2;
+  
+      for (int i = 0; i < 5; ++i)
+      {
+          v1.push_back(i);
+      }
+  
+      for (int i = 5; i > 0; --i)
+      {
+          v2.push_back(i);
+      }
+  
+      v1.swap(v2);
+  
+      debugVector(v1);
+      debugVector(v2);
+  }
+  
+  void demo2()
+  {
+      vector<int> v3;
+      for (int i = 0; i < 1000000; ++i)
+      {
+          v3.push_back(i);
+      }
+      debugVectorInfo(v3);
+  
+      // 巧用 swap() 收缩容器的容量大小0
+      v3.resize(10);
+      vector<int>(v3).swap(v3);
+      debugVectorInfo(v3);
+  }
+  
+  int main()
+  {
+      demo1();
+      demo2();
+      return 0;
+  }
+  ```
+
+- 总结：swap还可以收缩容器的容量大小
+
+
+
+
+
+##### 3.2.8 vector预留空间
+
+
+
+- 功能描述：减少vector在动态扩展容器时的扩展次数
+
+  | 函数原型               |                                                            |
+  | ---------------------- | ---------------------------------------------------------- |
+  | `reserve(int length);` | 容器预留`length`个元素长度，预留位置不初始化，元素不可访问 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/10 16:54
+  //
+  #include <iostream>
+  #include <vector>
+  
+  using namespace std;
+  
+  void demo1()
+  {
+      int count = 0;
+      int *p = nullptr;
+  
+      vector<int> v;
+  
+      for (int i = 0; i < 10000000; ++i)
+      {
+          v.push_back(i);
+          if (p != &v[0])
+          {
+              p = &v[0];
+              ++count;
+          }
+      }
+      cout << "Number Of Extensions: " << count << endl;
+  }
+  
+  void demo2()
+  {
+      int count = 0;
+      int *p = nullptr;
+  
+      vector<int> v;
+      v.reserve(10000001);
+  
+      for (int i = 0; i < 10000000; ++i)
+      {
+          v.push_back(i);
+          if (p != &v[0])
+          {
+              p = &v[0];
+              ++count;
+          }
+      }
+      cout << "Reserve Number Of Extensions: " << count << endl;
+  }
+  
+  int main()
+  {
+      demo1();
+      demo2();
+      return 0;
+  }
+  ```
+
+- 总结：如果一开始容器需要插入足够大的数据时，可以通过`reserve`的方式提前预留，已减少容器扩展的次数
