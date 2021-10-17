@@ -2927,3 +2927,494 @@ int main()
   ```
 
 - 总结：如果一开始容器需要插入足够大的数据时，可以通过`reserve`的方式提前预留，已减少容器扩展的次数
+
+
+
+
+
+#### 3.3 deque容器
+
+
+
+##### 3.3.1 deque基本概念
+
+
+
+- 功能：双端数组，可以对容器头端进行`插入`、`删除`操作
+
+- `deque`与`vector`的区别：
+
+  1. `vector`头部插入、删除效率低，数据量越大，效率越低
+  2. `vector`访问元素比`deque`快，源于内部实现的区别
+
+- `deque`功能介绍：
+
+  | 函数原型        |          |
+  | --------------- | -------- |
+  | `push_front();` | 头部插入 |
+  | `pop_front();`  | 头部删除 |
+
+- `deque`内部工作原理：
+
+  - `deque`内部有一个`中控器`，维护每段`缓冲区`的内容，缓冲区存放真实数据
+  - 中控器维护的是`缓冲区的地址`，使得deque在使用时，像是`连续的内存空间`
+  - `deque`容器的`迭代器`支持`随机访问`
+
+
+
+
+
+##### 3.3.2 deque构造函数
+
+
+
+- 功能描述：deque容器构造
+
+  | 函数原型                     |                                                 |
+  | ---------------------------- | ----------------------------------------------- |
+  | `deque<T> dequeT;`           | 默认构造形式                                    |
+  | `deque(begin, end);`         | 构造函数将 `[begin, end)`区间中的元素拷贝给自身 |
+  | `deque(n, elem);`            | 构造函数将`n`个`elem`拷贝给自身                 |
+  | `deque(const deque &deque);` | 拷贝构造函数                                    |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/14 12:27
+  //
+  #include <iostream>
+  #include <deque>
+  
+  using namespace std;
+  
+  // const 修饰 该容器为只可 读
+  void printDeque(const deque<int> &otherDeque)
+  {
+      for (deque<int>::const_iterator it = otherDeque.begin(); it != otherDeque.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo1()
+  {
+      // 无参构造
+      deque<int> d1;
+      for (int i = 0; i < 10; ++i)
+      {
+          d1.push_back(i);
+      }
+      printDeque(d1);
+  
+      // 区间构造
+      deque<int> d2(d1.begin(), d1.end());
+      printDeque(d2);
+  
+      // n个元素构造
+      deque<int> d3(10, 1);
+      printDeque(d3);
+  
+      // 拷贝构造
+      deque<int> d4(d3);
+      printDeque(d4);
+  }
+  
+  int main()
+  {
+      demo1();
+      return 0;
+  }
+  ```
+
+- 总结：`deque`与`vector`相似，灵活使用即可
+
+
+
+##### 3.3.3 deque赋值操作
+
+
+
+- 功能描述：给`deque`容器赋值
+
+  | 函数原型                                |                                             |
+  | --------------------------------------- | ------------------------------------------- |
+  | `deque &operator=(const deque &deque);` | 重载等号操作                                |
+  | `assign(begin, end);`                   | 将 `[begin, end)`区间中的数据拷贝赋值给本身 |
+  | `assign(n, elem);`                      | 将`n`个`elem`拷贝赋值给本身                 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/14 13:13
+  //
+  #include <iostream>
+  #include <deque>
+  
+  using namespace std;
+  
+  void printDeque(deque<int> &otherDeque)
+  {
+      for (deque<int>::iterator it = otherDeque.begin(); it != otherDeque.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      deque<int> deque1;
+      for (int i = 0; i < 10; ++i)
+      {
+          deque1.push_back(i);
+      }
+      printDeque(deque1);
+  
+      // operator=
+      deque<int> deque2 = deque1;
+      printDeque(deque2);
+  
+      // assign(begin, end)
+      deque<int> deque3;
+      deque3.assign(deque1.begin(), deque1.end());
+      printDeque(deque3);
+  
+      // assign(n, elem)
+      deque<int> deque4;
+      deque4.assign(10, 1);
+      printDeque(deque4);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+
+##### 3.3.4 deque大小操作
+
+
+
+- 功能描述：对`deque`容器的大小进行操作
+
+  | 函数原型                  |                                                              |
+  | ------------------------- | ------------------------------------------------------------ |
+  | `deque.empty();`          | 判断容器是否为空                                             |
+  | `deque.size();`           | 获取容器中元素个数                                           |
+  | `deque.resize(num);`      | 重新指定容器长度为`num`，容器过长以默认值填充，容器过短，删除末尾多余元素 |
+  | `deque.resize(num, elem)` | 重新指定容器长度为`num`，容器过长以`elem`填充，容器过短，删除末尾多余元素 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/17 15:17
+  //
+  #include <iostream>
+  #include <deque>
+  
+  using namespace std;
+  
+  void printDeque(const deque<int> &otherDeque)
+  {
+      for (deque<int>::const_iterator it = otherDeque.begin(); it != otherDeque.end(); ++it)
+      {
+          cout << *it <<" ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      // 初始化 deque1
+      deque<int> deque1;
+      for (int i = 0; i < 10; ++i)
+      {
+          deque1.push_back(i);
+      }
+      printDeque(deque1);
+  
+      // 判断deque1是否为空，不为空，打印出容器大小
+      if (deque1.empty())
+      {
+          cout << "deque1 is empty" << endl;
+      }
+      else
+      {
+          cout << "deque1 size: " << deque1.size() << endl;
+          // deque 没有容量的概念(capacity)
+      }
+  
+      // deque1 大小重置
+      deque1.resize(12);
+      printDeque(deque1);
+  
+      deque1.resize(15, 1);
+      printDeque(deque1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+- 总结：
+
+  1. `deque`没有容量的概念
+  2. `empty`判断是否为空
+  3. `size`获取容器的大小
+  4. `resize`重置容器大小
+
+
+
+
+
+##### 3.3.5 deque插入删除
+
+
+
+- 功能描述：向`deque`容器插入和删除数据
+
+- 函数原型：
+
+  | 两端插入caoz        |                      |
+  | ------------------- | -------------------- |
+  | `push_back(elem);`  | 容器尾部添加一个数据 |
+  | `push_front(elem);` | 容器头部插入一个数据 |
+  | `pop_back();`       | 删除容器最后一个数据 |
+  | `pop_front();`      | 删除容器开头一个数据 |
+
+  | 指定位置操作               |                                                       |
+  | -------------------------- | ----------------------------------------------------- |
+  | `insert(pos, elem);`       | 在`pos`位置插入一个`elem`元素的拷贝，返回新数据的位置 |
+  | `insert(pos, n, elem);`    | 在`pos`位置插入`n`个`elem`元素的拷贝，无返回值        |
+  | `insert(pos, begin, end);` | 在`pos`位置插入`[begin, end)`区间的数据，无返回值     |
+  | `clear();`                 | 清空容器所有数据                                      |
+  | `erase(begin, end);`       | 删除`[begin, end)`区间的数据，返回下一个数据的位置    |
+  | `erase(pos);`              | 删除`pos`位置的数据，返回下一个数据的位置             |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/17 15:38
+  //
+  #include <iostream>
+  #include <deque>
+  
+  using namespace std;
+  
+  void printDeque(const deque<int> &otherDeque)
+  {
+      for (deque<int>::const_iterator it = otherDeque.begin(); it != otherDeque.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      deque<int> deque1;
+  
+      // push_back()
+      deque1.push_back(1);
+      deque1.push_back(2);
+  
+      // push_front()
+      deque1.push_front(0);
+      deque1.push_front(0);
+      printDeque(deque1);
+  
+      // pop_back()
+      deque1.pop_back();
+  
+      // pop_front()
+      deque1.pop_front();
+      printDeque(deque1);
+  
+      // insert(pos, elem)
+      deque1.insert(deque1.begin(), 0);
+  
+      // insert(pos, n, elem)
+      deque1.insert(deque1.end(), 2, 2);
+      printDeque(deque1);
+  
+      // clear()
+      deque1.clear();
+      printDeque(deque1);
+  
+      for (int i = 0; i < 10; ++i)
+      {
+          deque1.push_back(i);
+      }
+      printDeque(deque1);
+  
+      // erase(begin, end)
+      deque1.erase(deque1.begin(), deque1.end() - 7);
+      printDeque(deque1);
+  
+      // erase(pos)
+      deque1.erase(deque1.begin() + 1);
+      printDeque(deque1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.3.6 deque数据存取
+
+
+
+- 功能描述：的`deque`中的数据的存取操作
+
+  | 函数原型           |                           |
+  | ------------------ | ------------------------- |
+  | `at(int index);`   | 返回索引`index`所指的数据 |
+  | `operator[index];` | 返回索引`index`所指的数据 |
+  | `front();`         | 返回容器中第一个数据      |
+  | `back();`          | 返回容器这最后一个数据    |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/17 15:57
+  //
+  #include <iostream>
+  #include <deque>
+  
+  using namespace std;
+  
+  void printDeque(const deque<int> &otherDeque)
+  {
+      for (deque<int>::const_iterator it = otherDeque.begin(); it != otherDeque.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      deque<int> deque1;
+      for (int i = 0; i < 10; ++i)
+      {
+          deque1.push_back(i);
+      }
+      printDeque(deque1);
+  
+      // at(int index)
+      cout << deque1.at(1) << endl;
+  
+      // operator[]
+      cout << deque1[1] << endl;
+  
+      // front()
+      cout << deque1.front() << endl;
+  
+      // back()
+      cout << deque1.back() << endl;
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+##### 3.3.7 deque容器排序
+
+
+
+- 功能描述：利用算法实现deque容器进行排序
+
+  | 函数原型                              |                                  |
+  | ------------------------------------- | -------------------------------- |
+  | `sort(iterator begin, iterator end);` | 对`begin, end`区间的数据进行排序 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/17 16:05
+  //
+  #include <iostream>
+  #include <deque>
+  #include <algorithm>
+  
+  using namespace std;
+  
+  void printDeque(const deque<int> &otherDeque)
+  {
+      for (deque<int>::const_iterator it = otherDeque.begin(); it != otherDeque.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      deque<int> deque1;
+      for (int i = 20; i > 0; i -= 2)
+      {
+          deque1.push_back(i);
+      }
+      printDeque(deque1);
+  
+      std::sort(deque1.begin(), deque1.end());
+      printDeque(deque1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+- 总结：使用`sort`排序，需引入头文件`algorithm`
+
+
+
+
+
+#### 3.4 案例-评委打分
+

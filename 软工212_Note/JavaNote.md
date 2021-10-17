@@ -867,13 +867,51 @@ public class Demo10
 
 
 
-
-
-#### 2.9 Java对象
+#### 2.9 函数重载题目
 
 
 
 ##### 2.9.1 例题1
+
+- 输入n个数，利用重载，打印最大值
+
+```java
+class Calculator
+{
+    void getMax(int...nums)
+    {
+        int maxNum = nums[0];
+
+        for (int num : nums)
+        {
+            maxNum = Math.max(maxNum, num);
+        }
+        System.out.println("Max Num: " + maxNum);
+    }
+}
+
+public class Demo11
+{
+    public static void main(String[] args)
+    {
+        Calculator calculator = new Calculator();
+
+        calculator.getMax(1, 2);
+        calculator.getMax(1, 2, 3);
+        calculator.getMax(1, 2, 3, 4);
+    }
+}
+```
+
+
+
+
+
+#### 3.0 Java对象
+
+
+
+##### 3.0.1 例题1
 
 - 创建一个宠物类，按提示输入相关信息，并最终打印出来
 
