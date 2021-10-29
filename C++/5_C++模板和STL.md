@@ -1952,7 +1952,7 @@ int main()
 
 
 
-- 功能描述：给string字符串赋值
+- 功能描述：给`string`字符串赋值
 
   | 赋值的函数原型                          |                                        |
   | --------------------------------------- | -------------------------------------- |
@@ -2213,7 +2213,7 @@ int main()
 
 
 
-- string中单个字符串存取方式有两种：
+- `string`中单个字符串存取方式有两种：
 
   | 方式                       |                    |
   | -------------------------- | ------------------ |
@@ -2387,13 +2387,13 @@ int main()
 
 
 
-- 功能：vector数据结构和`数组`非常相似，也称为`单端数组`
+- 功能：`vector`数据结构和`数组`非常相似，也称为`单端数组`
 
 - 与数组的区别：`数组`是静态空间，`vector`可以动态扩展
 
 - 动态扩展：并非是在原有的空间后面，连续开辟新空间；而是在另一个更大的内存空间中`重新开辟`，并`拷贝`原来的容器数据，同时`释放原容器`
 
-- vector容器的迭代器是支持随机访问的迭代器
+- `vector`容器的迭代器是支持随机访问的迭代器
 
   | vector迭代器方法介绍 `vector<T> v;` |                            |
   | ----------------------------------- | -------------------------- |
@@ -2411,7 +2411,7 @@ int main()
 
 
 
-- 功能描述：创建vector容器
+- 功能描述：创建`vector`容器
 
   | 函数原型 `vector<T> v;`       |                                                              |
   | ----------------------------- | ------------------------------------------------------------ |
@@ -2546,7 +2546,7 @@ int main()
 
 
 
-- 功能描述：对vector容器的容量和大小进行操作
+- 功能描述：对`vector`容器的容量和大小进行操作
 
   | 函数原型                 |                                                              |
   | ------------------------ | ------------------------------------------------------------ |
@@ -2624,7 +2624,7 @@ int main()
 
 
 
-- 功能描述：对vector容器进行插入、删除操作
+- 功能描述：对`vector`容器进行插入、删除操作
 
   | 函数原型                                           |                                              |
   | -------------------------------------------------- | -------------------------------------------- |
@@ -2709,7 +2709,7 @@ int main()
 
 
 
-- 功能描述：vector中的数据存取操作
+- 功能描述：`vector`中的数据存取操作
 
   | 函数原型         |                            |
   | ---------------- | -------------------------- |
@@ -2860,7 +2860,7 @@ int main()
 
 
 
-- 功能描述：减少vector在动态扩展容器时的扩展次数
+- 功能描述：减少`vector`在动态扩展容器时的扩展次数
 
   | 函数原型               |                                                            |
   | ---------------------- | ---------------------------------------------------------- |
@@ -2957,7 +2957,7 @@ int main()
 - `deque`内部工作原理：
 
   - `deque`内部有一个`中控器`，维护每段`缓冲区`的内容，缓冲区存放真实数据
-  - 中控器维护的是`缓冲区的地址`，使得deque在使用时，像是`连续的内存空间`
+  - 中控器维护的是`缓冲区的地址`，使得`deque`在使用时，像是`连续的内存空间`
   - `deque`容器的`迭代器`支持`随机访问`
 
 
@@ -2968,7 +2968,7 @@ int main()
 
 
 
-- 功能描述：deque容器构造
+- 功能描述：`deque`容器构造
 
   | 函数原型                     |                                                 |
   | ---------------------------- | ----------------------------------------------- |
@@ -3361,7 +3361,7 @@ int main()
 
 
 
-- 功能描述：利用算法实现deque容器进行排序
+- 功能描述：利用算法实现`deque`容器进行排序
 
   | 函数原型                              |                                  |
   | ------------------------------------- | -------------------------------- |
@@ -3418,3 +3418,953 @@ int main()
 
 #### 3.4 案例-评委打分
 
+
+
+##### 3.4.1 案例描述
+
+- 5名选上ABCDE，10名评委分别对每一名选手打分，去除最高分和最低分，取平均分
+
+
+
+##### 3.4.2 实现步骤
+
+1. 创建5名选手，存入`vector`容器中
+2. 遍历`vector`容器，获取每一名选手，使用`for`循环，把10名评委的打分存入`deque`容器中
+3. `sort`算法对`deque`容器中分数排序，去除最高和最低分
+4. `deque`容器遍历一遍，累加总分
+5. 获取平均分
+
+
+
+##### 3.4.3 示例代码
+
+```c++
+//
+// Created by FHang on 2021/10/20 14:26
+//
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <algorithm>
+#include <ctime>
+
+using namespace std;
+
+class Player
+{
+public:
+    string playerName;
+    int playerScore;
+
+    Player(string name, int score)
+    {
+        this->playerName = name;
+        this->playerScore = score;
+    }
+};
+
+/*Test Code*/
+/*void printVector(vector<Player> &v_Player)
+{
+    for (vector<Player>::iterator it = v_Player.begin(); it != v_Player.end(); ++it)
+    {
+        cout << "Name: " << (*it).playerName << " Score: " << (*it).playerScore << endl;
+    }
+    cout << endl;
+}
+
+void printPlayerScores(vector<Player> &v_Player, deque<int> &d_Scores)
+{
+    for (vector<Player>::iterator v_it = v_Player.begin(); v_it != v_Player.end(); ++v_it)
+    {
+        cout << v_it->playerName << endl;
+        for (deque<int>::iterator d_it = d_Scores.begin(); d_it != d_Scores.end(); ++d_it)
+        {
+            cout << *d_it << " ";
+        }
+        cout << endl;
+    }
+}*/
+
+/*Program Code*/
+vector<Player> createPlayers()
+{
+    int score = 0;
+    string nameSeed = "ABCDE";
+    vector<Player> v_Player;
+
+    for (int i = 0; i < 5; ++i)
+    {
+        string name = "player";
+        name += nameSeed[i];
+        Player player(name, score);
+        v_Player.push_back(player);
+    }
+
+    // printVector(v_Player);
+
+    return v_Player;
+}
+
+int playerScoreSortAndDeal(deque<int> &d_Scores)
+{
+    float averageScore;
+    int allScore = 0;
+
+    std::sort(d_Scores.begin(), d_Scores.end());
+    d_Scores.pop_front();
+    d_Scores.pop_back();
+
+    for (deque<int>::iterator it = d_Scores.begin(); it != d_Scores.end(); ++it)
+    {
+        allScore += (*it);
+    }
+    averageScore = allScore / d_Scores.size();
+    return averageScore;
+}
+
+void setPlayerScore(vector<Player> &v_Player)
+{
+    for (vector<Player>::iterator it = v_Player.begin(); it != v_Player.end(); ++it)
+    {
+        deque<int> d_Scores;
+
+        for (int i = 0; i < 10; ++i)
+        {
+            int score = (rand() % 71) + 30;
+            d_Scores.push_back(score);
+        }
+
+        it->playerScore = playerScoreSortAndDeal(d_Scores);
+
+        // printPlayerScores(v_Player, d_Scores);
+    }
+}
+
+void showPlayerAverageScore(vector<Player> &v_Player)
+{
+    for (vector<Player>::iterator it = v_Player.begin(); it != v_Player.end(); ++it)
+    {
+        cout << "Name: " + it->playerName << " AverageScore: " << it->playerScore << endl;
+    }
+}
+
+int main()
+{
+    srand((unsigned int) time(NULL));
+
+    vector<Player> v_Player = createPlayers();
+    setPlayerScore(v_Player);
+    showPlayerAverageScore(v_Player);
+
+    return 0;
+}
+```
+
+
+
+
+
+#### 3.5 stack容器
+
+
+
+##### 3.5.1 stack基本概念
+
+
+
+- 概念：`stack`是一种`先进后出(First In Last out : FILO)`的数据结构，它只有`一个出口`
+- `栈底`存放`首个元素`，后续`其它元素`都在`栈顶`依次加入
+- 栈中的元素，只有`栈顶的元素`可以`被外界使用`，也因此`不支持遍历`的行为
+- `push()`入栈，`pop()`出栈，`empty()`判断栈是否为空，`size()`获取栈大小
+
+
+
+
+
+##### 3.5.2 stack常用接口
+
+
+
+- 功能描述：栈容器常用的对外口
+
+
+
+- 构造函数：
+  - `stack<T> stk;` 采用`模板类`实现，`stack`对象的默认构造形式
+  - `stack(const stack &stk);` 拷贝构造函数
+- 赋值操作：
+  - `stack &operator=(const stack &stk);` 重载等号操作
+- 数据存取：
+  - `push(elem);` 向栈顶添加元素
+  - `pop();` 移除栈顶的元素
+  - `top();` 返回栈顶的元素
+- 大小操作：
+  - `empty();` 判断栈是否为空
+  - `size()` 获取栈大小
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/20 16:13
+  //
+  #include <iostream>
+  #include <stack>
+  
+  using namespace std;
+  
+  void demo()
+  {
+      stack<int> stk;
+  
+      stk.push(10);
+      stk.push(20);
+      stk.push(30);
+  
+      while (!stk.empty())
+      {
+          cout << "Stack Size: " << stk.size() << endl;
+          cout << "Stack Top Element: " << stk.top() << endl;
+          stk.pop();
+      }
+      cout << "Stack Size: " << stk.size() << endl;
+      cout << "Stack Top Element: " << stk.top() << endl;
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+#### 3.6 queue容器
+
+
+
+##### 3.6.1 queue基本概念
+
+
+
+- 概念：`queue`是`先进先出(First In Frist Out : FIFO)`的数据结构，它有两个出口
+- 队列容器只能队尾加入元素，对头删除元素
+- 队列容器只有头和尾可被外界使用，因此不支持遍历行为
+- 队列中进数据：入队`push`
+- 队列中出数据：出队`pop`
+
+
+
+##### 3.6.2 queue常用接口
+
+
+
+- 功能描述：栈容器常用的对外接口
+
+
+
+- 构造函数：
+  - `queue<T> que;` 采用`模板类`实现，`queue`对象的默认构造形式
+  - `queue(const queue &que);` 拷贝构造函数
+- 赋值操作：
+  - `queue&operator=(const queue &que);` 重载等号操作
+- 数据存取：
+  - `push(elem);` 向队尾添加元素
+  - `pop();` 移除队头元素
+  - `back();` 返回最后一个元素
+  - `front();` 返回第一个元素
+- 大小操作：
+  - `empty();` 判断栈是否为空
+  - `size()` 获取栈大小
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/20 16:37
+  //
+  #include <iostream>
+  #include <queue>
+  
+  using namespace std;
+  
+  class Person
+  {
+  public:
+      string name;
+      int age;
+  
+      Person(string name, int age)
+      {
+          this->name = name;
+          this->age = age;
+      }
+  };
+  
+  void demo()
+  {
+      queue<Person> q;
+  
+      Person p1("QQ", 10);
+      Person p2("WW", 20);
+      Person p3("EE", 30);
+      Person p4("RR", 40);
+  
+      q.push(p1);
+      q.push(p2);
+      q.push(p3);
+      q.push(p4);
+  
+      cout << "Queue Size: " << q.size() << endl;
+  
+      while (!q.empty())
+      {
+          cout << "Front Name: " + q.front().name + " Front Age: " << q.front().age << endl;
+          cout << "Back Name: " + q.back().name + " Back Age: " << q.back().age << endl;
+  
+          q.pop();
+      }
+  
+      cout << "Queue Size: " << q.size() << endl;
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+#### 3.7 list容器
+
+
+
+##### 3.7.1 list基本概念
+
+
+
+- 功能：将数据进行`链式`存储
+- 链表：是一种`物理存储单元`上`非连续`的存储结构，数据元素的`逻辑顺序`是通过链表中的`指针链`实现的
+- 链表的组成：链表由一系列`结点`组成
+- 结点的组成：一个是存储数据元素的`数据域`，另一个是存储下一个结点地址的`指针域`
+- STL中的链表是一个`双向循环链表`
+
+
+
+- 优点：可以对任意位置进行快速插入或删除元素
+- 缺点：
+  - 链表容器遍历元素比数组慢
+  - 占用空间比数组大
+
+
+
+- STL链表的结构：`双向循环链表`
+- 结点：
+  - `data区`：存储数据
+  - `pionter区`：(默认指向null，则是`不循环双向链表`)
+    - `prev`：指向上一个结点的首地址(第一个结点默认指向最后一个结点的首地址)
+    - `next`：指向下一个结点的首地址(最后一个结点默认指向第一个结点的首地址)
+- 方法：
+  - `push_front()`：添加一个新结点做为首结点
+  - `pop_front()`：删除首结点
+  - `push_back()`：添加一个新结点做为尾结点
+  - `pop_back()`：删除尾结点
+- 迭代器：
+  - `begin()`：获得首结点的地址
+  - `insert()`：获得指定的结点的地址
+  - `end()`：获得尾结点的地址
+
+
+
+- 补充：由于链表的存储方式并不是连续的内存空间，因此链表list中的迭代器只支持前移和后移，属于`双向迭代器`
+- list的优点：
+  - 采用动态存储分配，不会造成内存浪费和溢出
+  - 链表执行插入和删除操作十分方便，修改指针即可，不需要移动大量元素
+- list的缺点：
+  - 链表的灵活带来的是空间(指针域)和时间(遍历)的额外消费较大
+- list的重要性质：插入和删除操作都不会造成原有list容器迭代器的失效(vector中会失效)
+
+
+
+- 总结：STL中的`lsit`和`vector`是两个常用的容器，各有优缺点
+
+
+
+
+
+##### 3.7.2 list构造函数
+
+
+
+- 功能描述：创建`list`容器
+
+  | 函数原型                  |                                                |
+  | ------------------------- | ---------------------------------------------- |
+  | `list<T> list;`           | list采用模板类实现，对象的默认构造函数形式     |
+  | `list(begin, end);`       | 构造函数将`[begin, end)`区间中的元素拷贝给自身 |
+  | `list(n, elem);`          | 构造函数将`n`个`elem`拷贝给自身                |
+  | `list(const list &list);` | 拷贝构造函数                                   |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/27 14:37
+  //
+  #include <iostream>
+  #include <list>
+  
+  using namespace std;
+  
+  void printList(const list<int> &otherList)
+  {
+      for (list<int>::const_iterator it = otherList.begin(); it != otherList.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      list<int> list1;
+      list1.push_back(1);
+      list1.push_back(2);
+      list1.push_back(3);
+      list1.push_back(4);
+  
+      printList(list1);
+  
+      // 区间构造
+      list<int> list2(list1.begin(), list1.end());
+      printList(list2);
+  
+      // 拷贝构造
+      list<int> list3(list2);
+      printList(list3);
+  
+      // n 个 elem
+      list<int> list4(4, 0);
+      printList(list4);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+##### 3.7.3 list赋值交换
+
+
+
+- 功能描述：给`list`容器进行赋值，以及容器`list`交换
+
+  | 函数原型                             |                                            |
+  | ------------------------------------ | ------------------------------------------ |
+  | `assign(begin, end);`                | 将`[begin, end)`区间中的数据拷贝赋值给自身 |
+  | `assign(n, elem);`                   | `n`个`elem`拷贝赋值给自身                  |
+  | `list &operator=(const list &list);` | 重载`=`操作符                              |
+  | `swap(list);`                        | 将`list`与自身的元素互换                   |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/27 14:49
+  //
+  #include <iostream>
+  #include <list>
+  
+  using namespace std;
+  
+  void printList(const list<int> &other)
+  {
+      for (list<int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo1()
+  {
+      cout << "Demo1 >>" << endl;
+      list<int> l1(4, 1);
+      printList(l1);
+  
+      // operator=
+      list<int> l2 = l1;
+      printList(l2);
+  
+      // assign(begin, end)
+      list<int> l3;
+      l3.assign(l1.begin(), l1.end());
+      printList(l3);
+  
+      // assign(n, elem)
+      list<int> l4;
+      l4.assign(4, 0);
+      printList(l4);
+  }
+  
+  void demo2()
+  {
+      cout << "Demo2 >>" << endl;
+      list<int> list1(4, 0);
+      list<int> list2(4, 9);
+  
+      cout << "Swap List Before >>" << endl;
+      printList(list1);
+      printList(list2);
+  
+      cout << "Swap List Last >>" << endl;
+      list1.swap(list2);
+      printList(list1);
+      printList(list2);
+  }
+  
+  int main()
+  {
+      demo1();
+      demo2();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+##### 3.7.4 list大小操作
+
+
+
+- 功能描述：对`list`容器的大小进行操作
+
+  | 函数原型             |                                                              |
+  | -------------------- | ------------------------------------------------------------ |
+  | `size();`            | 返回容器中元素个数                                           |
+  | `empty();`           | 判断容器是否为空                                             |
+  | `resize();`          | 重新指定容器长度为`num`，容器过长以默认值填充，容器过短，删除末尾多余元素 |
+  | `resize(num, elem);` | 重新指定容器长度为`num`，容器过长以`elem`填充，容器过短，删除末尾多余元素 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/27 15:06
+  //
+  #include <iostream>
+  #include <list>
+  
+  using namespace std;
+  
+  void printList(const list<int> &other)
+  {
+      for (list<int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      list<int> list1(5, 1);
+  
+      if (list1.empty())
+      {
+          cout << "List1 Is Empty" << endl;
+      }
+      else
+      {
+          cout << "List1 Size: " << list1.size() << endl;
+      }
+  
+      list1.resize(10, 2);
+      printList(list1);
+  
+      list1.resize(5);
+      printList(list1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+##### 3.7.5 list插入删除
+
+
+
+- 功能描述：对`list`容器进行数据的插入和删除
+
+  | 函数原型                   |                                                     |
+  | -------------------------- | --------------------------------------------------- |
+  | `push_back(elem);`         | 在容器尾部加入一个元素                              |
+  | `pop_back();`              | 删除容器中最后一个元素                              |
+  | `push_front(elem);`        | 在容器开头加入一个元素                              |
+  | `pop_front();`             | 删除容器开头的一个元素                              |
+  | `insert(pos, elem);`       | 在`pos`的位置插入`elem`元素的拷贝，返回新数据的位置 |
+  | `insert(pos, n, elem);`    | 在`pos`位置插入`n`个`elem`元素，无返回值            |
+  | `insert(pos, begin, end);` | 在`pos`位置插入`[begin, end)`区间的数据，无返回值   |
+  | `clear();`                 | 移除容器中所有的元素                                |
+  | `erase(begin, end);`       | 删除`[begin, end)`区间的数据，返回下一个数据的位置  |
+  | `erase(pos);`              | 删除`pos`位置的数据，返回下一个数据的位置           |
+  | `remove(elem);`            | 删除容器中所有与`elem`元素匹配的元素                |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/29 14:54
+  //
+  #include <iostream>
+  #include <list>
+  
+  using namespace std;
+  
+  void printList(const list<int> &other)
+  {
+      for (list<int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      list<int> l1;
+  
+      // push_back()
+      for (int i = 0; i < 5; ++i)
+      {
+          l1.push_back(i);
+      }
+      printList(l1);
+  
+      // push_front()
+      for (int i = 1; i <5; ++i)
+      {
+          l1.push_front(1);
+      }
+      printList(l1);
+  
+      // pop_back()
+      l1.pop_back();
+      printList(l1);
+  
+      // pop_front()
+      l1.pop_front();
+      printList(l1);
+  
+      // insert(pos, elem)
+      l1.insert(l1.begin(), 0);
+      printList(l1);
+  
+      // insert(pos, n, elem)
+      l1.insert(l1.end(), 3, 5);
+      printList(l1);
+  
+      // insert(pos, begin, end);
+      list<int> l2(3, 9);
+      l1.insert(l1.end(), l2.begin(), l2.end());
+      printList(l1);
+  
+      // erase(pos)
+      l1.erase(++l1.begin());
+      printList(l1);
+  
+      // remove(elem)
+      l1.remove(5);
+      printList(l1);
+  
+      // clear()
+      l1.clear();
+      l1.push_front(9);
+      printList(l1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+##### 3.7.6 list数据存取
+
+
+
+- 功能描述：对`list`容器数据进行存取
+
+  | 函数原型   |                  |
+  | ---------- | ---------------- |
+  | `front();` | 返回第一个元素   |
+  | `back();`  | 返回最后一个元素 |
+
+
+
+- 补充：`list<int> l1;`
+  - `l1[0];`
+  - `l1.at(0);`
+  - 原因：`list`容器本质是`链表`，空间不连续，无法使用数组下标的方式获得数值，`迭代器`也不支持随机访问
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/29 15:33
+  //
+  #include <iostream>
+  #include <list>
+  
+  using namespace std;
+  
+  void printList(const list<int> &other)
+  {
+      for (list<int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      list<int> l1;
+  
+      for (int i = 0; i < 5; ++i)
+      {
+          l1.push_back(i);
+      }
+      printList(l1);
+  
+      cout << "l1 first>> " << l1.front() << endl;
+      cout << "l1 back>> " << l1.back() << endl;
+  
+      // 双向访问
+      list<int>::iterator it1 = ++l1.begin();
+      list<int>::iterator it2 = --l1.end();
+      l1.erase(it1, it2);
+      printList(l1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.7.7 list容器排序
+
+
+
+- 功能描述：将容器中的元素反转，以及元素排序
+
+  | 函数原型     |          |
+  | ------------ | -------- |
+  | `reverse();` | 反转链表 |
+  | `sort();`    | 链表排序 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/29 15:54
+  //
+  #include <iostream>
+  #include <list>
+  
+  using namespace std;
+  
+  void printList(const list<int> &other)
+  {
+      for (list<int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  bool upSort(int &list1, int &list2)
+  {
+      return list1 > list2;
+  }
+  
+  void demo()
+  {
+      list<int> list1;
+      for (int i = 0; i < 10; ++i)
+      {
+          list1.push_back(i);
+      }
+      printList(list1);
+  
+      // reverse()
+      list1.reverse();
+      printList(list1);
+  
+      // sort() -- 默认从小到大
+      list1.sort();
+      printList(list1);
+  
+      // sort() -- 改为从大到小
+      list1.sort(upSort);
+      printList(list1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+#### 3.8 案例--自定义数据排序
+
+
+
+- 案例描述：将`Person`自定义数据类型进行排序，`Person`中属性有：姓名，年龄，身高
+
+- 排序规则：按照年龄进行升序`(年龄小的放在前面)`，如果年龄相同，按照身高进行降序`(身高低的放在前面)`
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/29 16:15
+  //
+  #include <iostream>
+  #include <list>
+  
+  using namespace std;
+  
+  class Person
+  {
+  public:
+      string name;
+      int age;
+      int height;
+  
+      Person(const string &name, int age, int height)
+      {
+          this->name = name;
+          this->age = age;
+          this->height = height;
+      }
+  };
+  
+  // Debug
+  void printPersonList(const list<Person> &other)
+  {
+      for (list<Person>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << "Name:" << it->name << " Age:" << it->age << " Height:" << it->height << endl;
+      }
+      cout << endl;
+  }
+  
+  bool sortRule(Person &person1, Person &person2)
+  {
+      if (person1.age == person2.age)
+      {
+          return person1.height < person2.height;
+      }
+      else
+      {
+          return person1.age < person2.age;
+      }
+  }
+  
+  list<Person> createPersonList()
+  {
+      list<Person> l1;
+  
+      Person person1("QQ", 10, 160);
+      Person person2("WW", 20, 150);
+      Person person3("EE", 20, 170);
+      Person person4("RR", 70, 175);
+      Person person5("TT", 30, 180);
+  
+      l1.push_back(person1);
+      l1.push_back(person2);
+      l1.push_back(person3);
+      l1.push_back(person4);
+      l1.push_back(person5);
+  
+      printPersonList(l1);
+  
+      return l1;
+  }
+  
+  void upSort(list<Person> &other)
+  {
+      cout << "UpSort>> By Age And Height" << endl;
+      other.sort(sortRule);
+  
+      for (list<Person>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << "Name:" << it->name << " Age:" << it->age << " Height:" << it->height << endl;
+      }
+      cout << endl;
+  }
+  
+  int main()
+  {
+      list<Person> l1 = createPersonList();
+      upSort(l1);
+  
+      return 0;
+  }
+  ```
