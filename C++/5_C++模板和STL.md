@@ -4352,12 +4352,7 @@ int main()
   {
       cout << "UpSort>> By Age And Height" << endl;
       other.sort(sortRule);
-  
-      for (list<Person>::const_iterator it = other.begin(); it != other.end(); ++it)
-      {
-          cout << "Name:" << it->name << " Age:" << it->age << " Height:" << it->height << endl;
-      }
-      cout << endl;
+      printPersonList(other);
   }
   
   int main()
