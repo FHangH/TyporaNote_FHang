@@ -1,4 +1,4 @@
-#  	C++模板和STL
+# C++模板和STL
 
 
 
@@ -4363,3 +4363,704 @@ int main()
       return 0;
   }
   ```
+
+
+
+
+
+#### 3.9 set/multiset容器
+
+
+
+##### 3.9.1 set基本概念
+
+
+
+- 简介：所有元素被插入时，容器都会进行一次自动排序
+- 本质：`set/multiset`属于`关联容器`，底层结构是`二叉树`实现
+- `set`和`multiset`的区别：
+  - `set`不允许容器中有重复的元素
+  - `multiset`允许容器中有重复的元素
+
+
+
+
+
+##### 3.9.2 set构造赋值
+
+
+
+- 功能描述：创建`set`容器并赋值
+
+  | 构造                  |              |
+  | --------------------- | ------------ |
+  | `set<T> st;`          | 默认构造函数 |
+  | `set(const set &st);` | 拷贝构造函数 |
+
+  | 赋值                             |                |
+  | -------------------------------- | -------------- |
+  | `set &operator=(const set &st);` | 重载等号操作符 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 14:49
+  //
+  #include <iostream>
+  #include <set>
+  
+  using namespace std;
+  
+  void printSet(const set<int> &st)
+  {
+      for (set<int>::const_iterator it = st.begin(); it != st.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      set<int> st1;
+      // set 只能用 insert插入数据，且不插入重复数据
+      // set 会自动排序插入的数据
+      st1.insert(1);
+      st1.insert(1);
+      st1.insert(1);
+      st1.insert(4);
+      st1.insert(3);
+      st1.insert(2);
+      printSet(st1);
+  
+      // 默认构造
+      set<int> st2(st1);
+      printSet(st2);
+  
+      // 赋值拷贝构造
+      set<int> st3 = st1;
+      printSet(st3);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+- 总结：`set` 只能用 `insert`插入数据，且不插入重复数据
+
+
+
+
+
+##### 3.9.3 set大小交换
+
+
+
+- 功能描述：统计`set`容器大小，以及交换`set`容器
+
+  | 函数原型    |                    |
+  | ----------- | ------------------ |
+  | `size();`   | 返回容器中元素个数 |
+  | `empty();`  | 判断容器是否为空   |
+  | `swap(st);` | 交换两个容器的元素 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 15:00
+  //
+  #include <iostream>
+  #include <set>
+  
+  using namespace std;
+  
+  void printSet(const set<int> &st)
+  {
+      for (set<int>::const_iterator it = st.begin(); it != st.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      set<int> st1;
+      for (int i = 0; i < 5; ++i)
+      {
+          st1.insert(i);
+      }
+  
+      if (st1.empty())
+      {
+          cout << "Set1 Is Empty" << endl;
+      }
+      else
+      {
+          cout << "Set1>>";
+          printSet(st1);
+          cout << "Set1 Size>>" << st1.size() << endl;
+      }
+  }
+  
+  void demo2()
+  {
+      set<int> st1;
+      for (int i = 0; i < 5; ++i)
+      {
+          st1.insert(i);
+      }
+  
+      set<int> st2;
+      for (int i = 9; i >= 5 ; --i)
+      {
+          st2.insert(i);
+      }
+  
+      cout << "Swap Before>>" << endl;
+      cout << "Set1>>";
+      printSet(st1);
+      cout << "Set2>>";
+      printSet(st2);
+  
+      cout << "Swap Last>>" << endl;
+      st1.swap(st2);
+      cout << "Set1>>";
+      printSet(st1);
+      cout << "Set2>>";
+      printSet(st2);
+  }
+  
+  int main()
+  {
+      demo();
+      demo2();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.9.4 set插入删除
+
+
+
+- 功能描述：`set`容器进行插入和删除数据
+
+  | 函数原型             |                                                        |
+  | -------------------- | ------------------------------------------------------ |
+  | `insert(elem);`      | 在容器中插入元素                                       |
+  | `clear();`           | 清除所有元素                                           |
+  | `erase(pos);`        | 删除迭代器`pos`所指的元素，返回下一个元素的迭代器      |
+  | `erase(begin, end);` | 删除`[begin, end)`区间内的元素，返回下一个元素的迭代器 |
+  | `erase(elem);`       | 删除容器中的所有`elem`元素                             |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 15:14
+  //
+  #include <iostream>
+  #include <set>
+  
+  using namespace std;
+  
+  void printSet(const set<int> &st)
+  {
+      for (set<int>::const_iterator it = st.begin(); it != st.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      set<int> st1;
+      for (int i = 0; i <= 9; ++i)
+      {
+          st1.insert(i);
+      }
+      printSet(st1);
+  
+      // erase(pos)
+      st1.erase(st1.begin());
+      printSet(st1);
+  
+      // erase(elem)
+      st1.erase(9);
+      printSet(st1);
+  
+      // erase(begin, end);
+      st1.erase(++st1.begin(), --st1.end());
+      printSet(st1);
+  
+      // clear()
+      st1.clear();
+      st1.insert(0);
+      printSet(st1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.9.5 set查找统计
+
+
+
+- 功能描述：对容器内的元素进行查找和统计
+
+  | 函数原型      |                                                              |
+  | ------------- | ------------------------------------------------------------ |
+  | `find(key);`  | 查找`key`是否存在，存在则返回该元素的迭代器，不存在则返回`set.end();` |
+  | `count(key);` | 统计`key`的个数                                              |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 15:25
+  //
+  #include <iostream>
+  #include <set>
+  
+  using namespace std;
+  
+  void printSet(const set<int> &st)
+  {
+      for (set<int>::const_iterator it = st.begin(); it != st.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      set<int> st1;
+      for (int i = 0; i <= 9; ++i)
+      {
+          st1.insert(i);
+      }
+      printSet(st1);
+  
+      // find(key)
+      set<int>::const_iterator it = st1.find(3);
+      if (it != st1.end())
+      {
+          cout << "Set1 Find>>" << *it << endl;
+      }
+      else
+      {
+          cout << "Set1 Not Find" << endl;
+      }
+  
+      // count(key)
+      set<int> st2;
+      for (int i = 0; i <= 9; ++i)
+      {
+          st2.insert(0);
+      }
+      printSet(st2);
+      cout << "Set2 Count 0>>" << st2.count(0) << endl;
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.9.6 set/multiset区别
+
+
+
+- 区别：
+  1. `set`不可以插入重复的元素，`multiset`可以
+  2. `set`插入数据同时返回插入结果，表示插入成功
+  3. `multiset`不会检查插入数据，所以可以重复插入
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 15:58
+  //
+  #include <iostream>
+  #include <set>
+  
+  using namespace std;
+  
+  void printMultiSet(const multiset<int> &multiset1)
+  {
+      for (multiset<int>::const_iterator it = multiset1.begin(); it != multiset1.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      set<int> set1;
+      pair<set<int>::iterator, bool> pairResult;
+      pairResult = set1.insert(1);
+      cout << "First>> " << endl;
+      if (pairResult.second)
+      {
+          cout << "Set1 Insert " << "<" << *pairResult.first << ">" << " Succeed" << endl;
+      }
+      else
+      {
+          cout << "Set1 Insert " << "<" << *pairResult.first << ">" << " Error" << endl;
+      }
+  
+      pairResult = set1.insert(1);
+      cout << "Second>> " << endl;
+      if (pairResult.second)
+      {
+          cout << "Set1 Insert " << "<" << *pairResult.first << ">" << " Succeed" << endl;
+      }
+      else
+      {
+          cout << "Set1 Insert " << "<" << *pairResult.first << ">" << " Error" << endl;
+      }
+  }
+  
+  void demo2()
+  {
+      multiset<int> multiset1;
+      for (int i = 0; i <= 9; ++i)
+      {
+          multiset1.insert(9);
+      }
+      printMultiSet(multiset1);
+  }
+  
+  int main()
+  {
+      demo();
+      demo2();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.9.7 pair对组创建
+
+
+
+- 功能描述：成对出现的数据组，利用对组可以返回两个数据
+- 创建方式：
+  1. `pair<type1, type2> p(value1, value2);`
+  2. `pair<type1, type2> p = make_pair(value1, value2);`
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 16:18
+  //
+  #include <iostream>
+  
+  using namespace std;
+  
+  void printPair(const pair<string, int> &other)
+  {
+      cout << "Name: " << other.first << " Age: " << other.second << endl;
+  }
+  
+  void demo()
+  {
+      pair<string, int> pair1("FF", 22);
+      printPair(pair1);
+  
+      pair<string, int> pair2 = make_pair("QQ", 20);
+      printPair(pair2);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.9.8 set容器排序
+
+
+
+- 默认排序：`set`容器`默认`排序是`从小到大`
+- 排序目标：掌握自定义排序规则
+- 使用方法：利用`仿函数`，改变排序规则
+
+
+
+- 代码示例一：`set`存放内置数据类型，从大到小排序
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 16:30
+  //
+  #include <iostream>
+  #include <set>
+  
+  using namespace std;
+  
+  class DownSort
+  {
+  public:
+      bool operator()(int value1, int value2)
+      {
+          return value1 > value2;
+      }
+  };
+  
+  void printSet(const set<int> &other)
+  {
+      for (set<int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void printSet(const set<int, DownSort> &other)
+  {
+      for (set<int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << *it << " ";
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      set<int> set1;
+      for (int i = 0; i <= 9; ++i)
+      {
+          set1.insert(i);
+      }
+      printSet(set1);
+  
+      set<int, DownSort> set2;
+      for (int i = 0; i <= 9; ++i)
+      {
+          set2.insert(i);
+      }
+      printSet(set2);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+- 代码示例二：自定义数据类型，从大到小排序
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/30 16:42
+  //
+  #include <iostream>
+  #include <set>
+  
+  using namespace std;
+  
+  class Person
+  {
+  public:
+      string name;
+      int age;
+  
+      Person(string name, int age)
+      {
+          this->name = name;
+          this->age = age;
+      }
+  };
+  
+  class DownSort
+  {
+  public:
+      bool operator()(const Person &p1, const Person &p2)
+      {
+          return p1.age > p2.age;
+      }
+  };
+  
+  void printSet(const set<Person, DownSort> &other)
+  {
+      for (set<Person, DownSort>::iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << "Name: " << it->name << " Age: " << it->age << endl;
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      Person p1("QQ", 10);
+      Person p2("WW", 40);
+      Person p3("EE", 20);
+      Person p4("RR", 30);
+  
+      set<Person, DownSort> set1;
+      set1.insert(p1);
+      set1.insert(p2);
+      set1.insert(p3);
+      set1.insert(p4);
+  
+      printSet(set1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+
+
+#### 3.10 map/multimap容器
+
+
+
+##### 3.10.1 map基本概念
+
+
+
+- 简介：
+  - `map`中所有的元素都是`pair`
+  - `pair`中第一个元素为`key(键值)`，起到索引作用，第二元素为`value(实值)`
+  - 所有元素都会根据元素的键值自动排序
+- 本质：
+  - `map/multimap`属于`关联式容器`，底层结构是用`二叉树`实现
+- 优点：
+  - 可以根据`key`值快速找到`value`值
+- `map/multimap`的区别：
+  - `map`不允许有重复的元素
+  - `multimap`允许重复的元素
+
+
+
+
+
+##### 3.10.2 map构造赋值
+
+
+
+- 功能描述：对map容器进行构造和赋值操作
+
+  | 构造                  |                   |
+  | --------------------- | ----------------- |
+  | `map<T1, T2> mp;`     | `map`默认构造函数 |
+  | `map(const map &mp);` | 拷贝构造函数      |
+
+  | 赋值                             |                |
+  | -------------------------------- | -------------- |
+  | `map &operator=(const map &mp);` | 重载等号操作符 |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/10/31 16:34
+  //
+  #include <iostream>
+  #include <map>
+  
+  using namespace std;
+  
+  void printMap(const map<int, string> &other)
+  {
+      for (map<int, string>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << "ID: " << it->first << " Name: " << it->second << endl;
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      map<int, string> map1;
+  
+      map1.insert(pair<int, string>(1, "QQ"));
+      map1.insert(pair<int, string>(4, "WW"));
+      map1.insert(pair<int, string>(2, "EE"));
+      map1.insert(pair<int, string>(5, "RR"));
+      map1.insert(pair<int, string>(3, "TT"));
+  
+      printMap(map1);
+  
+      // 拷贝构造
+      map<int, string> map2(map1);
+      printMap(map2);
+  
+      // 赋值
+      map<int, string> map3 = map1;
+      printMap(map3);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
