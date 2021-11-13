@@ -4271,7 +4271,7 @@ int main()
 
 
 
-#### 3.8 案例--自定义数据排序
+#### 3.8 案例-自定义数据排序
 
 
 
@@ -5063,4 +5063,424 @@ int main()
   ```
 
   
+
+
+
+##### 3.10.3 map大小交换
+
+
+
+- 功能描述：统计`map`容器大小以及交换`map`容器
+
+  | 函数原型    |                        |
+  | ----------- | ---------------------- |
+  | `size();`   | 返回容器中的元素的数目 |
+  | `empty();`  | 判断容器是否为空       |
+  | `swap(st);` | 交换两个集合容器       |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/11/13 15:12
+  //
+  #include <iostream>
+  #include <map>
+  
+  using namespace std;
+  
+  void printMap(const map<int, int> &other)
+  {
+      for (map<int, int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << "Key: " << it->first << " Value: " << it->second << endl;
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      map<int, int> map1;
+      map1.insert(pair<int, int>(1, 10));
+      map1.insert(pair<int, int>(2, 20));
+      map1.insert(pair<int, int>(3, 30));
+  
+      if (map1.empty())
+      {
+          cout << "Map1 Is Empty" << endl;
+      }
+      else
+      {
+          cout << "Map1 Size " << map1.size() << endl;
+      }
+  
+      map<int, int> map2;
+      map2.insert(pair<int, int>(4, 40));
+      map2.insert(pair<int, int>(5, 50));
+      map2.insert(pair<int, int>(6, 60));
+  
+      map1.swap(map2);
+  
+      printMap(map1);
+      printMap(map2);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.10.4 map插入删除
+
+
+
+- 功能描述：`map`容器进行插入和删除操作
+
+  | 函数原型                                  |                                                       |
+  | ----------------------------------------- | ----------------------------------------------------- |
+  | `insert(pair<type1, type2>(key, value));` | 在容器中插入元素                                      |
+  | `clear();`                                | 清空容器                                              |
+  | `erase(pos);`                             | 删除`pos`迭代器所指位置的元素，返回下一个元素的迭代器 |
+  | `erase(begin, end);`                      | 删除`[begin, end]`之间的元素，返回下一个元素的迭代器  |
+  | `erase(key);`                             | 删除`key`指定索引位置的元素                           |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/11/13 15:31
+  //
+  #include <iostream>
+  #include <map>
+  
+  using namespace std;
+  
+  void printMap(const map<int, int> &other)
+  {
+      for (map<int, int>::const_iterator it = other.begin(); it != other.end(); ++it)
+      {
+          cout << "Key: " << it->first << " Value: " << it->second << endl;
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      map<int, int> map1;
+      map1.insert(pair<int, int>(1, 10));
+      map1.insert(make_pair(2, 20));
+      map1.insert(map<int, int>::value_type(3, 30));
+  
+      // 不建议使用该方法插入，但可以通过这个方法利用 key 访问 value
+      map1[4] = 40;
+  
+      map1.insert(pair<int, int>(5, 50));
+      map1.insert(pair<int, int>(6, 60));
+      map1.insert(pair<int, int>(7, 70));
+  
+      // map[5]在容器中不存在，所以默认直接在容器中添加了一个，默认value为0
+      cout << map1[8] << endl;
+  
+      printMap(map1);
+  
+      map1.erase(map1.begin());
+      printMap(map1);
+  
+      map1.erase(8);
+      printMap(map1);
+  
+      map1.erase(++map1.begin(), --map1.end());
+      printMap(map1);
+  
+      map1.clear();
+      printMap(map1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+##### 3.10.5 map查找统计
+
+
+
+- 功能描述：对`map`容器进行查找数据以及数据统计
+
+  | 函数原型      |                                                              |
+  | ------------- | ------------------------------------------------------------ |
+  | `find(key);`  | 查找`key`是否存在，若存在返回`key`键的元素迭代器；不存在，返回`set.end();` |
+  | `count(key);` | 统计`key`的元素的个数                                        |
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/11/13 16:34
+  //
+  #include <iostream>
+  #include <map>
+  
+  using namespace std;
+  
+  void printMap(const map<int, int> &other)
+  {
+      for (map<int, int>::const_iterator it = other.cbegin(); it != other.cend(); ++it)
+      {
+          cout << "Key: " << it->first << " Value: " << it->second << endl;
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      map<int, int> map1;
+      map1.insert(pair<int, int>(1, 10));
+      map1.insert(pair<int, int>(2, 20));
+      map1.insert(pair<int, int>(3, 30));
+  
+      map<int, int>::const_iterator itPos = map1.find(3);
+  
+      // map.end() 返回的是迭代器所指位置的 “下一个”迭代器的位置
+      if (itPos != map1.cend())
+      {
+          cout << "Key: " << itPos->first << " Value: " << itPos->second << endl;
+          cout << "End Key: " << map1.cend()->first << " End Value: " << map1.cend()->second << endl;
+      }
+      else
+      {
+          cout << "Can Find Key" << endl;
+      }
+  
+      map1.insert(pair<int, int>(3, 90));
+      int count = map1.count(3);
+      cout << "End Key: " << map1.cend()->first << " End Value: " << map1.cend()->second << endl;
+      cout << count << endl;
+  
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+  
+
+
+
+##### 3.10.6 map容器排序
+
+
+
+- 目标：
+  1. `map`容器默认排序规则，按照`key`值进行，从小到大的排序
+  2. 掌握自定义排序规则
+
+
+
+- 主要技术点：利用仿函数，改变排序规则
+
+
+
+- 代码示例：
+
+  ```c++
+  //
+  // Created by FHang on 2021/11/13 18:08
+  //
+  #include <iostream>
+  #include <map>
+  
+  using namespace std;
+  
+  class DownSort
+  {
+  public:
+      bool operator()(int value1, int value2)
+      {
+          return value1 > value2;
+      }
+  };
+  
+  void printMap(const map<int, int, DownSort> &other)
+  {
+      for (map<int, int>::const_iterator it = other.cbegin(); it != other.cend(); ++it)
+      {
+          cout << "Key: " << it->first << " Value: " << it->second << endl;
+      }
+      cout << endl;
+  }
+  
+  void demo()
+  {
+      map<int, int, DownSort> map1;
+      map1.insert(pair<int, int>(1, 10));
+      map1.insert(pair<int, int>(2, 20));
+      map1.insert(pair<int, int>(3, 30));
+      map1.insert(pair<int, int>(4, 40));
+      map1.insert(pair<int, int>(5, 50));
+  
+      printMap(map1);
+  }
+  
+  int main()
+  {
+      demo();
+      return 0;
+  }
+  ```
+
+
+
+
+
+
+
+#### 3.11 案例-员工分组
+
+
+
+##### 3.11.1 案例描述
+
+- 10名员工（ABCDEFGHIJ），需要分配部门
+- 员工信息：姓名，工资
+- 部门：策划，美术，研发
+- 随机给10名员工分配工资和部门
+- 通过`multimap`进行信息插入：`key`部门编号，`value`员工
+- 分部门显示员工信息
+
+
+
+##### 3.11.2 实现步骤
+
+1. 创建10个员工对象，存入`vector`容器中
+2. 遍历`vector`，取出每个员工，进行随机分组
+3. 分组后，将`key`部门编号，`value`员工，存放到`multimap`
+4. 分部门显示员工信息
+
+
+
+##### 3.11.3 案例代码
+
+```c++
+//
+// Created by FHang on 2021/11/13 19:05
+//
+#include <iostream>
+#include <vector>
+#include <map>
+#include <ctime>
+
+using namespace std;
+
+#define PLAN 0
+#define ART 1
+#define RD 2
+
+class Staff
+{
+public:
+    string staff_Name;
+    int staff_Salary;
+};
+
+void printVector(const vector<Staff> &other)
+{
+    for (vector<Staff>::const_iterator it = other.cbegin(); it != other.cend(); ++it)
+    {
+        cout << "Name: " << it->staff_Name << " Salary: " << it->staff_Salary << endl;
+    }
+    cout << endl;
+}
+
+void creatStaff(vector<Staff> &v_Staff)
+{
+    string staffNameSeed = "ABCDEFGHIJ";
+    for (int i = 0; i < 10; ++i)
+    {
+        Staff staff;
+        staff.staff_Name = "Staff_";
+        staff.staff_Name += staffNameSeed[i];
+        staff.staff_Salary = rand() % 10000 + 10000;
+
+        v_Staff.push_back(staff);
+    }
+}
+
+void setStaffGroup(vector<Staff> &v_Staff, multimap<int, Staff> &map_Depart)
+{
+    for (vector<Staff>::iterator it = v_Staff.begin(); it != v_Staff.end(); ++it)
+    {
+        int depart_ID = rand() % 3;
+        map_Depart.insert(pair<int, Staff>(depart_ID, *it));
+    }
+}
+
+void checkStaffByGroup(multimap<int, Staff>::const_iterator &itPos, const multimap<int, Staff> &map_Depart, const int count)
+{
+    for (int index = 0; itPos != map_Depart.cend() && index < count; ++itPos, ++index)
+    {
+        cout << "Name: " << itPos->second.staff_Name << " Salary: " << itPos->second.staff_Salary << endl;
+    }
+    cout << endl;
+}
+
+void showStaffInfoByGroup(multimap<int, Staff> &map_Depart)
+{
+    int countStaff_PLAN = map_Depart.count(PLAN);
+    int countStaff_ART = map_Depart.count(ART);
+    int countStaff_RD = map_Depart.count(RD);
+
+    multimap<int, Staff>::const_iterator itPos_Plan = map_Depart.find(PLAN);
+    multimap<int, Staff>::const_iterator itPos_Art = map_Depart.find(ART);
+    multimap<int, Staff>::const_iterator itPos_RD = map_Depart.find(RD);
+
+    cout << "Plan Department>>" << endl;
+    checkStaffByGroup(itPos_Plan, map_Depart, countStaff_PLAN);
+
+    cout << "Art Department>>" << endl;
+    checkStaffByGroup(itPos_Art, map_Depart, countStaff_ART);
+
+    cout << "R&D Department>>" << endl;
+    checkStaffByGroup(itPos_RD, map_Depart, countStaff_RD);
+}
+
+int main()
+{
+    srand((unsigned int)time(NULL));
+
+    vector<Staff> v_Staff;
+    creatStaff(v_Staff);
+    printVector(v_Staff);
+
+    multimap<int, Staff> map_Depart;
+    setStaffGroup(v_Staff, map_Depart);
+
+    showStaffInfoByGroup(map_Depart);
+
+    return 0;
+}
+```
+
+
 
