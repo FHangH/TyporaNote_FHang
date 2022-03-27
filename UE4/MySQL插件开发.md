@@ -549,7 +549,7 @@ ConnectorLibs
   
   FString UBPFuncLib_FHSQL::SelectByColumnsFormatSqlQuery(FString TableName, FString Columns)
   {
-  	// SELECT CustomerName, City, Country FROM Customers;
+  	// SELECT Columns1, Columns2, Country FROM TableName;
   	FString SqlQuery = "SELECT " + Columns + " FROM " + TableName + ";";
   	return SqlQuery;
   }
