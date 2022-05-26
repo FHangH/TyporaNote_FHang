@@ -448,3 +448,250 @@ RPC例子：同一场爆炸
 
 
 #### 3.1 组件复制
+
+
+
+##### 3.1.1 组件复制介绍
+
+
+
+介绍：
+
+- 虚幻引擎 4 支持组件复制
+- 大多数组件都不会复制
+- 多数游戏逻辑都是在 Actor 类和组件中完成，而它们 通常只代表了构成 Actor 的零散部分
+- 实际复制的是 Actor 中的游戏逻辑，而这样做的结果，有时会调用/更改组件
+- 有些情况下，组件本身的属性或事件必须要直接复制
+- 一旦复制了 Actor，它就可以复制自身组件
+- 这些组件 可以按 Actor 的方式复制属性和 RPC
+- 组件必须以 Actor 的方式实施 `::GetLifetimeReplicatedProps (...)` 函数
+
+
+
+组件复制涉及两大类组件：
+
+- 静态组件：一种是随 Actor 一起创建的组件
+
+  - 在客户端或服务器上生成 所属 Actor 时，这些组件也会同时生成，与组件是否被复制无关
+  - 服务器不会告知客户端显式生成这些组件
+  - 静态组件无需通过复制存在于客户端
+  - 只有在属性或事件需要在服务器和客户端之间自动同步时，才需要进行复制
+
+  
+
+- 动态组件：运行时在服务器上生成的组件种，其创建和删除操作也将被复制到客户端
+
+  - 运行方式与 Actor 极为一致
+  - 动态组件需通过复制的方式存在于所有客户端
+  - 客户端可以生成自己的本地非复制组件，当那些在服务器上触发的 属性或事件需要自动同步到客户端时，才会出现复制行为
+
+
+
+
+
+##### 3.1.2 使用方式
+
+
+
+- 在组件上设置属性和 RPC 的过程与 Actor 并无区别
+- 将一个类设置为具有复本后，这些组件的实际实例也必须经过设置后才能复制
+
+
+
+- C++
+
+- 调用 `AActorComponent::SetIsReplicated(true)` 即可
+
+- 如果组件是一个默认子对象，就应当在生成组件之后通过类构造函数来完成此调用
+
+- 示例：
+
+  ```c++
+  ACharacter::ACharacter()
+  {
+      // Etc...
+  
+      CharacterMovement = CreateDefaultSubobject<UMovementComp_Character>(TEXT("CharMoveComp"));
+      if (CharacterMovement)
+      {
+          CharacterMovement->UpdatedComponent = CapsuleComponent;
+  
+          CharacterMovement->GetNavAgentProperties()->bCanJump = true;
+          CharacterMovement->GetNavAgentProperties()->bCanWalk = true;
+          CharacterMovement->SetJumpAllowed(true);
+          CharacterMovement->SetNetAddressable(); // Make DSO components net addressable
+          CharacterMovement->SetIsReplicated(true); // Enable replication by default
+  
+      }
+  }
+  ```
+
+
+
+- 蓝图
+
+- 要进行静态蓝图组件复制，只需在组件默认设置中切换 **Replicates** 布尔变量
+
+- 静态组件需要在客户端和服务器上隐式创建
+
+- 并非所有组件都会如此显示，必须要支持某种复制形式才会显示
+
+  ![components_checkbox.png](https://docs.unrealengine.com/4.27/Images/InteractiveExperiences/Networking/Actors/Components/components_checkbox.jpg)
+
+- 通过动态生成的组件来实现这一点，可以调用 **SetIsReplicated** 函数
+
+  ![components_function.png](https://docs.unrealengine.com/4.27/Images/InteractiveExperiences/Networking/Actors/Components/components_function.jpg)
+
+
+
+
+
+##### 3.1.3 时间轴
+
+
+
+- 时间轴必须通过其属性中的 Replicated 选项来启用复制
+- 会将服务器控制的运行位置、速率和方向复制到客户端
+- 大多数时间轴都无需复制
+- 时间轴复本只应当在服务器上直接 操作 (start/stop etc)
+- 客户端只应当查看运行位置的复本，而不应尝试改变时间轴本身
+- 在进行复制更新的间歇，客户端将推测 运行位置
+
+
+
+
+
+##### 3.1.4 带宽开销
+
+
+
+- 复制组件时的资源开销是比较低的
+- 复制的 Actor 中的每个组件都需要添加一个额外的 NetGUID（4 字节）"标头"和一个大约 1 字节的"标脚"（footer） 及其属性
+- 在 CPU 层面上，基于 Actor 的属性复制与基于组件的复制之间应当有一个最小差异
+
+
+
+
+
+##### 3.1.5 一般性子对象复制
+
+
+
+- 所有 Actor 子对象都可以复制，而不只限于组件
+
+
+
+- 对于希望复制非 ActorComponent 子对象的类，应当实施三种方法
+
+  ```c++
+  /** FActory 方法，用于对模板化 TobjectReplicator 类进行实例化，以便实现子对象复制 */
+  virtual class FObjectReplicatorBase * InstantiateReplicatorForSubObject(UClass *SubobjClass);
+  
+  /** 能让 Actor 在其 Actor 通道上复制子对象的方法 */
+  virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags);
+  
+  /** 通过复制来动态创建新的子对象时，在 Actor 上进行调用 */
+  virtual void OnSubobjectCreatedFromReplication(UObject *NewSubobject);
+  ```
+
+
+
+
+
+###### 3.1.5.1 使用情形
+
+
+
+- 能在 Actor 通道的层面上使用 UObject 和多态（polymorphism）
+- 之前用于复杂数据结构的复制方法只适合那些 在 Actor 类中对类型进行静态定义的结构
+- 利用子对象复制，建立一个道具栏系统，使其中的每个物品作为一个从基本道具栏类扩展而来的类， 也可以进行完整复制，同时无需让这些项成为 Actor（资源负担太大）
+
+
+
+
+
+###### 3.1.5.2 优化
+
+
+
+- 有很多子对象需要复制，Actor 只需了解哪些子对象（如存在）最近发生过变化且需要复制，从而节省了大量时间
+
+- 通过访问器（accessor）函数来持续跟踪子对象的更改情况
+
+- 所用的接口位于 UActorChannel 中
+
+  ```c++
+  bool KeyNeedsToReplicate(int32 ObjID, int32 RepKey);
+  ```
+
+- 该函数应当由 Actor 在其 `::ReplicateSubobjects` 实施中调用
+
+- Actor 类可以设置一个任意的对象 ID 和复制键，供复制系统跟踪每个客户端
+
+- 对象 ID 和复制键完全是任意指定的
+
+- 对象 ID 仅用于引用"事情"
+
+  - 可以是整个子对象列表、部分列表或单个对象
+
+- 复制键同样可以任意指定
+
+  - 可以是一个在对象 ID 跟踪变化时递增的计数器
+
+
+
+
+
+
+
+#### 3.2 Actor及其所属连接
+
+
+
+##### 3.2.1 连接
+
+
+
+- 每个连接都有一个专门为其创建的 PlayerController
+- 确定一个 actor 是否归某一连接所有，您可以查询这个 actor 最外围的所有者
+- 所有者是一个 PlayerController，则这个 actor 同样归属于拥有 PlayerController 的那个连接
+
+
+
+
+
+##### 3.2.2 确定连接
+
+
+
+- 在确定所属连接方面，组件有一些特殊之处
+  - 首先确定组件所有者，方法是遍历组件的"外链"，直到找出所属的 actor
+  - 确定这个 actor 的所属连接，像上面那样继续下去
+  - 连接所有权是以下情形中的重要因素：
+    - RPC 需要确定哪个客户端将执行运行于客户端的 RPC
+    - Actor 复制与连接相关性
+    - 在涉及所有者时的 Actor 属性复制条件
+
+
+
+##### 3.2.3 连接的作用
+
+
+
+- 连接所有权对于 RPC 这样的机制至关重要，因为当您在 actor 上调用 RPC 函数时
+- 除非 RPC 被标记为多播，否则就需要知道要在哪个客户端上执行该 RPC
+- 它可以查找所属连接来确定将 RPC 发送到哪条连接
+
+
+
+- 连接所有权会在 actor 复制期间使用，用于确定各个 actor 上有哪些连接获得了更新
+- 对于那些将 bOnlyRelevantToOwner 设置为 true 的 actor，只有拥有此 actor 的连接才会接收这个 actor 的属性更新
+- 默认情况下，所有 PlayerController 都设置了此标志，正因如此，客户端才只会收到它们拥有的 PlayerController 的更新
+- 最主要的是防止玩家作弊和提高效率
+
+
+
+- 对于那些要用到所有者的 [需要复制属性的情形](https://docs.unrealengine.com/4.27/zh-CN/InteractiveExperiences/Networking/Actors/Properties/Conditions) 来说，连接所有权具有重要意义：
+  - 当使用 `COND_OnlyOwner` 时，只有此 actor 的所有者才会收到这些属性更新
+- 所属连接对那些作为自治代理的 actor（角色为 `ROLE_AutonomousProxy`）来说也很重要
+  - 这些 actor 的角色会降级为 `ROLE_SimulatedProxy`，其属性则被复制到不拥有这些 actor 的连接中
