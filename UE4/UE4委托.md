@@ -603,3 +603,429 @@ FChangedEvent ChangedEvent;
 | :------------ | :--------------------------------------------------- |
 | "Broadcast()" | 将该委托广播给所有绑定的对象，但可能已过期的对象除外 |
 
+
+
+
+
+
+
+
+
+### 6. 委托示例
+
+
+
+#### 6.1 单播委托
+
+
+
+**定义单播委托**
+
+1. 新建一个测试类`MyActor`
+
+2. `MyActor.h`
+
+   ```c++
+   #pragma once
+   
+   #include "CoreMinimal.h"
+   #include "GameFramework/Actor.h"
+   #include "MyActor.generated.h"
+   
+   /*
+    * 定义单播委托
+    */
+   // 无返回值，无参数
+   DECLARE_DELEGATE(FTestDelegateNoParam);
+   
+   // 无返回值，一个参数
+   DECLARE_DELEGATE_OneParam(FTestDelegateOneParam, float);
+   
+   // 无返回值，多个参数（两个参数为例）
+   DECLARE_DELEGATE_TwoParams(FTestDelegateTwoParams, float, const FString&);
+   
+   // 有返回值，多个参数（两个参数为例）
+   DECLARE_DELEGATE_RetVal_TwoParams(int32, FTestDelegateRetValTwoParams, float, const FString&);
+   
+   UCLASS()
+   class A_03_DELEGATE_API AMyActor : public AActor
+   {
+   	GENERATED_BODY()
+   
+   public:
+   	AMyActor();
+   
+   protected:
+   	virtual void BeginPlay() override;
+   
+   /*
+    * 声明委托，定义函数，绑定委托
+    */
+   protected:
+   	// 声明委托
+   	FTestDelegateRetValTwoParams DelegateRetValTwoParams;
+   	
+   public:
+   	// 测试单播委托，有返回值，两个参数
+   	UFUNCTION()
+   	int32 Func(float a, const FString& s);
+   
+       // 测试单播委托，绑定静态函数
+   	UFUNCTION()
+   	static int32 Func_Static(float a, const FString &s);
+   };
+   ```
+
+3. `MyActor.cpp`
+
+   ```c++
+   #include "MyActor.h"
+   
+   class FTest
+   {
+   public:
+   	int32 Func(float a, const FString &s)
+   	{
+   		return 1;
+   	}
+   };
+   
+   AMyActor::AMyActor(){}
+   
+   void AMyActor::BeginPlay()
+   {
+   	Super::BeginPlay();
+   
+   	// 委托-通过对象-绑定函数
+   	DelegateRetValTwoParams.BindUObject(this, &AMyActor::Func);
+   	
+   	// 委托-直接绑定Lambda函数
+   	DelegateRetValTwoParams.BindLambda([this](float a, const FString &s)->int32
+   	{
+   		return 1;
+   	});
+   
+   	// 委托-通过原生Cpp类-绑定函数
+   	FTest TestA;
+   	DelegateRetValTwoParams.BindRaw(&TestA, &FTest::Func);
+   
+   	// 委托-通过共享指针-绑定函数
+   	const TSharedPtr<FTest> TestB = MakeShareable(new FTest);
+   	DelegateRetValTwoParams.BindSP(TestB.ToSharedRef(), &FTest::Func);
+   
+   	// 委托-绑定静态函数
+   	DelegateRetValTwoParams.BindStatic(&Func_Static);
+   
+   	// 委托-通过线程安全共享指针-绑定函数
+   	const TSharedPtr<FTest, ESPMode::ThreadSafe> TestC = MakeShareable(new FTest);
+   	DelegateRetValTwoParams.BindThreadSafeSP(TestC.ToSharedRef(), &FTest::Func);
+   
+   	// 委托-通过函数名称的反射-绑定UFUNCTION()修饰的函数
+   	DelegateRetValTwoParams.BindUFunction(this, "Func");
+   
+   	// 顺手通过委托调用绑定的函数
+   	if (DelegateRetValTwoParams.IsBound())
+   	{
+   		// ExecuteIfBound 是无参委托的调用方法
+   		int a = DelegateRetValTwoParams.Execute(24.f, "FTestDelegateRetValTwoParams");
+   	}
+   }
+   
+   /* My Code */
+   int32 AMyActor::Func(float a, const FString &s)
+   {
+   	return 1;
+   }
+   
+   int32 AMyActor::Func_Static(float a, const FString& s)
+   {
+   	return 1;
+   }
+   ```
+
+   
+
+
+
+
+
+#### 6.2 多播委托
+
+
+
+**定义多播委托**
+
+1. `MyActor.h`
+
+   ```c++
+   #pragma once
+   
+   #include "CoreMinimal.h"
+   #include "GameFramework/Actor.h"
+   #include "MyActor.generated.h"
+   
+   /*
+    * 定义多播委托，绑定多个形式相同的函数，同时执行（顺序随机）
+    * 无返回值类型
+    */
+   // 无返回值，无参数
+   DECLARE_MULTICAST_DELEGATE(FTestMulDelegateNoParam);
+   
+   // 无返回值，一个或多个参数（两个参数为例）
+   DECLARE_MULTICAST_DELEGATE_TwoParams(FTestMulDelegateTwoParams, float, const FString &);
+   
+   UCLASS()
+   class A_03_DELEGATE_API AMyActor : public AActor
+   {
+   	GENERATED_BODY()
+   
+   public:
+   	AMyActor();
+   
+   protected:
+   	virtual void BeginPlay() override;
+   
+   /*
+    * 声明委托，定义函数，绑定委托
+    */
+   protected:
+   	// 声明委托
+   	FTestMulDelegateTwoParams MulDelegateTwoParams;
+   	
+   public:
+   	// 测试多播委托，无返回值，两个参数
+   	UFUNCTION()
+   	void Func_Mul(float a, const FString &s);
+   };
+   ```
+
+2. `MyActor.cpp`
+
+   ```c++
+   #include "MyActor.h"
+   
+   AMyActor::AMyActor(){}
+   
+   void AMyActor::BeginPlay()
+   {
+   	Super::BeginPlay();
+   
+   	/*
+   	 * 多播委托
+   	 */
+       // 多播委托-通过对象-绑定函数
+   	MulDelegateTwoParams.AddUObject(this, &AMyActor::Func_Mul);
+       
+       // 调用函数
+   	MulDelegateTwoParams.Broadcast(24.f, "FTestMulDelegateTwoParams");
+   }
+   
+   /* My Code */
+   void AMyActor::Func_Mul(float a, const FString& s)
+   {
+   }
+   ```
+
+   
+
+
+
+
+
+#### 6.3 动态委托
+
+
+
+##### 6.3.1 动态单播委托
+
+
+
+**定义动态单播委托**
+
+1. `MyActor.h`
+
+   ```c++
+   #pragma once
+   
+   #include "CoreMinimal.h"
+   #include "GameFramework/Actor.h"
+   #include "MyActor.generated.h"
+   
+   /*
+    * 定义动态单播委托
+    * 可以用于蓝图中
+    * 所以定义时，参数列表中的参数类型后要跟上参数名
+    */
+   // 无返回值，无参数
+   DECLARE_DYNAMIC_DELEGATE(FTestDynamicDelegateNoParam);
+   
+   // 无返回值，有参数（一个参数为例）
+   DECLARE_DYNAMIC_DELEGATE_OneParam(FTestDynamicDelegateOneParam, int32, a);
+   
+   // 有返回值，有参数（一个参数为例）
+   DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(int32, FTestDynamicDelegateRetValOneParam, int32, a);
+   
+   UCLASS()
+   class A_03_DELEGATE_API AMyActor : public AActor
+   {
+   	GENERATED_BODY()
+   
+   public:
+   	AMyActor();
+   
+   protected:
+   	virtual void BeginPlay() override;
+   
+   /*
+    * 声明委托，定义函数，绑定委托
+    */
+   protected:
+   	// 声明委托
+   	FTestDynamicDelegateRetValOneParam DynamicDelegateRetValOneParam;
+       
+   public:
+   	// 测试动态单播委托，蓝图中使用
+   	UFUNCTION(BlueprintCallable)
+   	void Func_Dynamic(FTestDynamicDelegateRetValOneParam DynamicDelegateRetValOneParam);
+   
+   	// 测试动态单播委托，cpp使用
+   	UFUNCTION()
+   	int32 Func_DynamicCpp(int32 a);
+   };
+   ```
+
+2. `MyActor.cpp`
+
+   ```c++
+   #include "MyActor.h"
+   
+   AMyActor::AMyActor(){}
+   
+   void AMyActor::BeginPlay()
+   {
+   	Super::BeginPlay();
+   
+   	/*
+   	 * 动态单播委托
+   	 */
+   	DynamicDelegateRetValOneParam.BindDynamic(this, &AMyActor::Func_DynamicCpp);
+   	int32 b = DynamicDelegateRetValOneParam.Execute(24);
+   }
+   
+   /* My Code */
+   void AMyActor::Func_Dynamic(FTestDynamicDelegateRetValOneParam DynamicDelegateRetValOneParam)
+   {
+   }
+   
+   int32 AMyActor::Func_DynamicCpp(int32 a)
+   {
+   	return 1;
+   }
+   ```
+
+
+
+
+
+##### 6.3.2 动态多播委托
+
+
+
+**定义动态多播委托**
+
+1. `MyActor.h`
+
+   ```c++
+   #pragma once
+   
+   #include "CoreMinimal.h"
+   #include "GameFramework/Actor.h"
+   #include "MyActor.generated.h"
+   
+   /*
+    * 动态多播委托
+    * 可以用于蓝图中
+    * 等同于蓝图中的事件调度器
+    * 多播委托没有返回值
+    */
+   // 无返回值，无参数
+   DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTestDynamicMulDelegate);
+   
+   // 无返回值，有参数（一个参数为例）
+   DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTestDynamicMulDelegateOnParam, int32, a);
+   
+   UCLASS()
+   class A_03_DELEGATE_API AMyActor : public AActor
+   {
+   	GENERATED_BODY()
+   
+   public:
+   	AMyActor();
+   
+   protected:
+   	virtual void BeginPlay() override;
+   
+   /*
+    * 声明委托，定义函数，绑定委托
+    */
+   protected:
+   	// 声明委托
+   	UPROPERTY(BlueprintAssignable)
+   	FTestDynamicMulDelegate DynamicMulDelegate;
+   
+   	FTestDynamicMulDelegateOnParam DynamicMulDelegateOnParam;
+   	
+   public:
+   	// 测试动态多播委托，cpp使用
+   	UFUNCTION()
+   	void Func_DynamicMulCpp();
+   
+   	// 测试动态多播委托，有参数，cpp使用
+   	UFUNCTION()
+   	void Func_DynamicMul_One(int32 a);
+   };
+   ```
+
+2. `MyActor.cpp`
+
+   ```cpp
+   #include "MyActor.h"
+   
+   AMyActor::AMyActor(){}
+   
+   void AMyActor::BeginPlay()
+   {
+   	Super::BeginPlay();
+   
+   	/*
+   	 * 动态多播委托
+   	 */
+   	// 无参数
+   	DynamicMulDelegate.AddDynamic(this, &AMyActor::Func_DynamicMulCpp);
+   	DynamicMulDelegate.Broadcast();
+   
+   	// 有参数
+   	DynamicMulDelegateOnParam.AddDynamic(this, &AMyActor::Func_DynamicMul_One);
+   	DynamicMulDelegateOnParam.Broadcast(24);
+   }
+   
+   /* My Code */
+   void AMyActor::Func_DynamicMulCpp()
+   {
+   }
+   
+   void AMyActor::Func_DynamicMul_One(int32 a)
+   {
+   }
+   ```
+
+   
+
+
+
+
+
+### 7. 原生Cpp委托
+
+
+
