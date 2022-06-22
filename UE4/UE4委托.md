@@ -1029,3 +1029,422 @@ FChangedEvent ChangedEvent;
 
 
 
+**Delegate.cpp**单播
+
+```c++
+#include <iostream>
+#include <functional>
+
+// 函数指针的两种定义方式
+typedef int (*FuncMethod)(int, int);
+// using FuncMethod = int(*)(int, int);
+
+class TestA
+{
+public:
+    int TestAddNum(int a, int b)
+    {
+        const int c = a + b;
+        std::cout << c << std::endl;
+        return c;
+    }
+};
+typedef int (TestA::*TestFuncMethod)(int , int);
+
+//using TestFuncMethod = int(TestA::*)(int, int);
+
+
+// 单播代理
+class FDelegateTwoParams
+{
+private:
+    std::function<int()> Func;
+
+public:
+    void BindGlobalFunc(FuncMethod FuncPtr, int a, int b)
+    {
+        Func = std::bind(FuncPtr, a, b);
+    }
+
+    void BindRaw(TestA *UserClass, TestFuncMethod FuncPtr, int a, int b)
+    {
+        Func = std::bind(FuncPtr, UserClass, a, b);
+    }
+
+    bool IsBound() const
+    {
+        return Func ? true : false;
+    }
+
+    void Execute()
+    {
+        Func();
+    }
+
+    bool ExecuteIfBound()
+    {
+        if (IsBound())
+        {
+            Execute();
+            return true;
+        }
+        return false;
+    }
+};
+
+int AddNum(int a, int b)
+{
+    const int c = a + b;
+    std::cout << c << std::endl;
+    return c;
+}
+
+void DelegateDemo()
+{
+    FDelegateTwoParams Delegate;
+    Delegate.BindGlobalFunc(&AddNum, 10, 20);
+    Delegate.Execute();
+}
+
+void DelegateDemo2()
+{
+    TestA *testA = new TestA;
+    FDelegateTwoParams Delegate;
+    Delegate.BindRaw(testA, &TestA::TestAddNum, 20, 30);
+    Delegate.Execute();
+}
+
+int main()
+{
+    // // 函数指针调用函数
+    // FuncMethod FuncPtr = &AddNum;
+    // FuncPtr(1, 2);
+
+    // // 全局绑定调用函数
+    // std::function<int()> FuncPtr2 = std::bind(&AddNum, 2, 3);
+    // FuncPtr2();
+
+    DelegateDemo();
+    DelegateDemo2();
+
+    return 0;
+}
+```
+
+
+
+
+
+**DelegateMul.cpp**多播
+
+```c++
+#include <iostream>
+#include <functional>
+#include <vector>
+
+// 函数指针的两种定义方式
+typedef int (*FuncMethod)(int, int);
+
+class TestA
+{
+public:
+    int TestAddNum(int a, int b)
+    {
+        const int c = a + b;
+        std::cout << c << std::endl;
+        return c;
+    }
+};
+typedef int (TestA::*TestFuncMethod)(int , int);
+
+
+// 多播代理
+class FDelegateTwoParams
+{
+public:
+    void BindGlobalFunc(FuncMethod FuncPtr, int a, int b)
+    {
+        FuncArray.push_back(std::bind(FuncPtr, a, b));
+    }
+
+    void BindRaw(TestA *UserClass, TestFuncMethod FuncPtr, int a, int b)
+    {
+        FuncArray.push_back(std::bind(FuncPtr, UserClass, a, b));
+    }
+
+    void BroadCast()
+    {
+        for (std::vector<std::function<int()>>::iterator itr = FuncArray.begin();
+              itr != FuncArray.end(); ++itr)
+        {
+            (*itr)();
+        }
+        
+    }
+
+private:
+    std::vector<std::function<int()>> FuncArray;
+};
+
+int AddNum(int a, int b)
+{
+    const int c = a + b;
+    std::cout << c << std::endl;
+    return c;
+}
+
+void DelegateDemo()
+{
+    TestA *testA = new TestA;
+    FDelegateTwoParams Delegate;
+    Delegate.BindRaw(testA, &TestA::TestAddNum, 10, 20);
+    Delegate.BindRaw(testA, &TestA::TestAddNum, 20, 30);
+    Delegate.BroadCast();
+}
+
+int main()
+{
+    DelegateDemo();
+
+    return 0;
+}
+```
+
+
+
+
+
+**DelegateMarco.cpp**
+
+```c++
+#include <iostream>
+#include <functional>
+
+class TestA
+{
+public:
+    void FuncNoParam()
+    {
+        std::cout << "FuncNoParamDelegate" << std::endl;
+    }
+    
+    void FuncTwoParam(int a, int b)
+    {
+        const int c = a + b;
+        std::cout << "FuncTwoParam : " << c << std::endl;
+    }
+};
+// 定义类 作用域下的函数指针
+typedef void (TestA::*FuncMethodNoParam)(void);
+typedef void (TestA::*FuncMethodTwoParam)(int, int);
+
+// 宏定义 代理
+// 无参数，无返回值
+#define DECLARE_DELEGATE(DelegateName)\
+class My##DelegateName\
+{\
+public:\
+    void BindRaw(TestA *UserClass, FuncMethodNoParam FuncPtr)\
+    {\
+        Func = std::bind(FuncPtr, UserClass);\
+    }\
+    bool IsBound() const\
+    {\
+        return Func ? true : false;\
+    }\
+    void Execute()\
+    {\
+        Func();\
+    }\
+    bool ExecuteIfBound()\
+    {\
+        if (IsBound())\
+        {\
+            Execute();\
+            return true;\
+        }\
+        return false;\
+    }\
+private:\
+    std::function<void()> Func;\
+};
+
+// 有参数，无返回值
+#define DECLARE_DELEGATE_TWO_PARAM(DelegateName, TypeParam1, TypeParam2)\
+class My##DelegateName\
+{\
+public:\
+    void BindRaw(TestA *UserClass, FuncMethodTwoParam FuncPtr, TypeParam1 p1, TypeParam2 p2)\
+    {\
+        Func = std::bind(FuncPtr, UserClass, p1, p2);\
+    }\
+    bool IsBound() const\
+    {\
+        return Func ? true : false;\
+    }\
+    void Execute()\
+    {\
+        Func();\
+    }\
+    bool ExecuteIfBound()\
+    {\
+        if (IsBound())\
+        {\
+            Execute();\
+            return true;\
+        }\
+        return false;\
+    }\
+private:\
+    std::function<void()> Func;\
+};
+
+// 创建自定义宏代理
+DECLARE_DELEGATE(TestDelegateNoParam);
+DECLARE_DELEGATE_TWO_PARAM(TestDelegateTwoParam, int, int);
+
+void DelegateDemo()
+{
+    TestA testA;
+    MyTestDelegateNoParam Delegate;
+    Delegate.BindRaw(&testA, &TestA::FuncNoParam);
+    Delegate.Execute();
+}
+
+void DelegateDemo2()
+{
+    TestA testB;
+    MyTestDelegateTwoParam Delegate;
+    Delegate.BindRaw(&testB, &TestA::FuncTwoParam, 10, 20);
+    Delegate.Execute();
+}
+
+int main()
+{
+    DelegateDemo();
+    DelegateDemo2();
+    return 0;
+}
+```
+
+
+
+
+
+**DelegateTemplate.cpp**
+
+```c++
+#include <iostream>
+#include <functional>
+
+template<typename Class, typename FuncType>
+struct TMemFuncPtrType;
+
+template<typename Class, typename RetType, typename... ArgTypes>
+struct TMemFuncPtrType<Class, RetType(ArgTypes...)>
+{
+    typedef RetType(Class::*Type)(ArgTypes...);
+};
+
+
+// 定义一个模板代理
+template <typename RetValType, typename... ParamTypes>
+class TBaseDelegate
+{
+private:
+    std::function<RetValType()> Func;
+
+public:
+    template<typename UserClass>
+    void BindRaw(UserClass *MyUserClass, 
+            typename TMemFuncPtrType<UserClass, RetValType(ParamTypes...)>::Type FuncPtr, 
+            ParamTypes... Vars)
+    {
+        Func = std::bind(FuncPtr, MyUserClass, Vars...);
+    }
+
+    bool IsBound() const
+    {
+        return Func ? true : false;
+    }
+
+    void Execute()
+    {
+        Func();
+    }
+
+    bool ExecuteIfBound()
+    {
+        if (IsBound())
+        {
+            Execute();
+            return true;
+        }
+        return false;
+    }
+};
+
+#define DECLARE_DELEGATE(DelegateName) class DelegateName : public TBaseDelegate<void>{};
+#define DECLARE_DELEGATE_TWO_PARAMS(DelegateName, ParamType1, ParamType2) class DelegateName : public TBaseDelegate<void, ParamType1, ParamType2>{};
+#define DECLARE_DELEGATE_RETVAL_TWO_PARAMS(RetType, DelegateName, ParamType1, ParamType2) class DelegateName : public TBaseDelegate<RetType, ParamType1, ParamType2>{};
+
+
+DECLARE_DELEGATE(TestDelegate);
+DECLARE_DELEGATE_TWO_PARAMS(TestDelegateTwoParams, int, int);
+DECLARE_DELEGATE_RETVAL_TWO_PARAMS(int, TestDelegateRetValTwoParams, int, int);
+
+class TestA
+{
+public:
+    void Print()
+    {
+        std::cout << "Hello World" << std::endl;
+    }
+
+    void Print2(int a, int b)
+    {
+        const int c = a + b;
+        std::cout << c << std::endl;
+    }
+
+    int Print3(int a, int b)
+    {
+        const int c = a + b;
+        std::cout << c << std::endl;
+        return c;
+    }
+};
+ 
+void DelegateDemo()
+{
+    TestDelegate TD;
+    TestA testA;
+    TD.BindRaw(&testA, &TestA::Print);
+    TD.Execute();
+}
+
+void DelegateDemo2()
+{
+    TestDelegateTwoParams TDTwoParams;
+    TestA testB;
+    TDTwoParams.BindRaw(&testB, &TestA::Print2, 10, 20);
+    TDTwoParams.Execute();
+}
+
+void DelegateDemo3()
+{
+    TestDelegateRetValTwoParams TDRTwoParams;
+    TestA testC;
+    TDRTwoParams.BindRaw(&testC, &TestA::Print3, 99, 100);
+    TDRTwoParams.Execute();
+}
+
+int main()
+{
+    DelegateDemo();
+    DelegateDemo2();
+    DelegateDemo3();
+    return 0;
+}
+```
+
