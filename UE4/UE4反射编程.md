@@ -1106,7 +1106,7 @@
    #include "SubStudent.generated.h"
    
    UCLASS()
-   class A_04_REFLEECTIVE_API USubStudent : public UStudent
+   class REFLECTIVE_API USubStudent : public UStudent
    {
    	GENERATED_BODY()
    
