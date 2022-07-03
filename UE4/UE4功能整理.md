@@ -848,4 +848,550 @@ static bool LineTraceSingleByProfile(
   }
   ```
 
+
+
+
+
+
+
+
+### 10. TimerHandle
+
+
+
+情景：
+
+- 需要使用定时器
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #define PrintScreen(String) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, String)
+  
+  private:
+  	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	int32 CallTracker;
+  
+  	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+  	FTimerHandle TimerHandle;
+  	
+  public:
+  	UFUNCTION()
+  	void TimerFunction();
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  void ATimerHandle_Actor::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	GetWorldTimerManager().SetTimer(
+  		TimerHandle,
+  		this,
+  		&ATimerHandle_Actor::TimerFunction,
+  		1.f,
+  		true,
+  		1.f);
+  }
+  
+  void ATimerHandle_Actor::TimerFunction()
+  {
+  	CallTracker == 0 ?
+  		PrintScreen("Timer End"), GetWorldTimerManager().ClearTimer(TimerHandle) :
+  		PrintScreen(FString::Printf(TEXT("Timer: %d"), CallTracker));
+  
+  	--CallTracker;
+  }
+  ```
+
+
+
+
+
+
+
+
+### 11. Disable Actor
+
+
+
+情景：
+
+- 编辑场景中的`Actor`
+- 不希望直接从场景中删除
+- 可以在生成的实例编辑中关闭
+- 不消耗性能
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #define PrintScreen(String) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, String)
+  
+  private:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	bool isOverrideTick = false;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	bool isAutoDisable = false;
+  
+  public:
+  	UFUNCTION()
+  	void SetActive(bool isActive);
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  ADisableActor::ADisableActor()
+  {
+  	PrimaryActorTick.bCanEverTick = true;
+  
+  }
+  
+  void ADisableActor::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	isOverrideTick = !PrimaryActorTick.bCanEverTick;
+  	if (isAutoDisable){SetActive(false);}
+  }
+  
+  void ADisableActor::Tick(float DeltaSeconds)
+  {
+  	Super::Tick(DeltaSeconds);
+  
+  	PrintScreen("Tick");
+  }
+  
+  void ADisableActor::SetActive(bool isActive)
+  {
+  	if (isOverrideTick)
+  	{
+  		SetActorTickEnabled(false);
+  	}
+  	else
+  	{
+  		SetActorTickEnabled(isActive);
+  	}
+  
+  	SetActorHiddenInGame(!isActive);
+  	SetActorEnableCollision(isActive);
+  }
+  ```
+
+
+
+说明：
+
+- 在场景中，只需要实例中的`isAutoDisable`进行勾选
+- 重新运行，`Actor`将会被禁用，不会作用于场景中
+
+
+
+
+
+
+
+### 12. Hit Event
+
+
+
+情景：
+
+- 通过一个`Actor`和场景中的其他`Actor`碰撞
+- 产生碰撞事件
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #define PrintScreen(String) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, String)
+  
+  class UBoxComponent;
+  
+  private:
+  	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UBoxComponent *HitBox;
+  
+  public:
+  	UFUNCTION()
+  	void OnHitComp(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+  		FVector NormalImpulse, const FHitResult& Hit);
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  AHitEventActor::AHitEventActor()
+  {
+  	PrimaryActorTick.bCanEverTick = false;
+  
+  	HitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Hit Box"));
+  }
+  
+  void AHitEventActor::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	HitBox->OnComponentHit.AddDynamic(this, &AHitEventActor::OnHitComp);
+  }
+  
+  void AHitEventActor::OnHitComp(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+  	FVector NormalImpulse, const FHitResult& Hit)
+  {
+  	PrintScreen(FString::Printf(TEXT("Hit: %s"), *OtherActor->GetName()));
+  }
+  ```
+
+
+
+说明：
+
+- `HitBox`需要些设置，碰撞事件才能生效
+- 配置：
+  - 方便查看：
+    - 设置`形状`
+    - 设置`渲染`
+  - 产生事件：设置`碰撞`
+    - 打开`模拟生成命中事件`
+    - 设置`碰撞预设`
+
+
+
+
+
+
+
+### 13. Set Material
+
+
+
+情景：
+
+- 材质的创建
+- 材质的使用
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  class UStaticMeshComponent;
+  class UMaterialInterface;
+  class UMaterial;
+  class UMaterialInstance;
+  
+  private:
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UStaticMeshComponent *Mesh;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterialInterface *MaterialOne;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterialInterface *MaterialTwo;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterial *Material;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterialInstance *MaterialInstance;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	bool IsChooseOne = true;
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  ASetMaterial::ASetMaterial()
+  {
+  	PrimaryActorTick.bCanEverTick = false;
+  
+  	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh_Comp"));
+  	RootComponent = Mesh;
+  
+  	MaterialOne = CreateDefaultSubobject<UMaterialInterface>(TEXT("Material_One"));
+  	MaterialTwo = CreateDefaultSubobject<UMaterialInterface>(TEXT("Material_Two"));
+  }
+  
+  void ASetMaterial::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	Mesh->SetMaterial(0, IsChooseOne ? MaterialOne : MaterialTwo);
+  }
+  ```
+
+
+
+
+
+
+
+### 14. Dynamic Material
+
+
+
+情景：
+
+- 有一个基本的材质
+- 通过创建材质实例
+- 对其中的`ScaleParam`，`VectorParam`进行动态修改
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  class UStaticMeshComponent;
+  class UMaterialInterface;
+  class UMaterialInstanceDynamic;
+  
+  private:
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UStaticMeshComponent *Mesh;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterialInterface *MaterialInterface;
+  
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterialInstanceDynamic *DynamicInstance;
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  ADynamicMaterial::ADynamicMaterial()
+  {
+  	PrimaryActorTick.bCanEverTick = false;
+  
+  	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+  	RootComponent = Mesh;
+  }
+  
+  void ADynamicMaterial::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	MaterialInterface = Mesh->GetMaterial(0);
+  	DynamicInstance = UMaterialInstanceDynamic::Create(MaterialInterface, this);
+  	
+  	Mesh->SetMaterial(0, DynamicInstance);
+  
+  	DynamicInstance->SetScalarParameterValue(TEXT("EmissiveStrength"), 50.f);
+  	DynamicInstance->SetVectorParameterValue(TEXT("Color"), FLinearColor::Yellow);
+  }
+  ```
+
+
+
+
+
+
+
+### 15. Interp Target
+
+
+
+情景：
+
+- 指定`Actor`插值移动到`Target`
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  private:
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	AActor *Origin = nullptr;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	AActor *Target;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	float InterpSpeed = 3.f;
+  	
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	float WaitTime = 1.f;
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  void UInterpTarget_SComp::BeginPlay()
+  {
+  	Super::BeginPlay();
+  	
+  	Origin = GetOwner();
+  }
+  
+  void UInterpTarget_SComp::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+  {
+  	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+  
+  	if (WaitTime > 0)
+  	{
+  		WaitTime -= DeltaTime;
+  		return;
+  	}
+  
+  	if (!Target || !Origin){return;}
+  	
+  	Origin->SetActorLocation(
+  		FMath::VInterpTo(
+  			Origin->GetActorLocation(),
+  			Target->GetActorLocation(),
+  			DeltaTime,
+  			InterpSpeed));
+  }
+  ```
+
+
+
+说明：
+
+- `Origin = GetOwner();`写在构造函数里无效
+
+
+
+
+
+
+
+### 16. Lerp
+
+
+
+情景：
+
+- 需要使用`Lerp`
+- 修改`Actor`的`位置`和`材质`
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  class UMaterialInterface;
+  class UMaterialInstanceDynamic;
+  class UStaticMeshComponent;
+  
+  private:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterialInterface *MaterialInter;
+  
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UMaterialInstanceDynamic *InstanceDynamic;
+  
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	AActor *OriginActor = nullptr;
+  
+  	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	UStaticMeshComponent *Mesh;
+  	
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	FVector StartLocation;
+  
+  	UPROPERTY(EditAnywhere, meta=(MakeEditWidget=true))
+  	FVector TargetLocation;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	float TimeElapsed = 0;
+  	
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	float LerpDuration = 3.f;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+  	float WaitTime = 1.f;
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "Lerp_SComp.h"
+  
+  ULerp_SComp::ULerp_SComp()
+  {
+  	PrimaryComponentTick.bCanEverTick = true;
+  
+  	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+  }
+  
+  void ULerp_SComp::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	OriginActor = GetOwner();
+  	StartLocation = GetComponentLocation();
+  	MaterialInter = Mesh->GetMaterial(0);
+  	InstanceDynamic = UMaterialInstanceDynamic::Create(MaterialInter, this);
+  	Mesh->SetMaterial(0, InstanceDynamic);
+  	InstanceDynamic->SetVectorParameterValue(TEXT("Color"), FLinearColor::Blue);
+  }
+  
+  void ULerp_SComp::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+  {
+  	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+  
+  	if (!OriginActor){return;}
+  
+  	if (WaitTime > 0){WaitTime -= DeltaTime; return;}
+  
+  	if (TimeElapsed < LerpDuration)
+  	{
+  		OriginActor->SetActorLocation(
+  			FMath::Lerp(
+  				StartLocation,
+  				TargetLocation,
+  				TimeElapsed / LerpDuration));
+  
+  		InstanceDynamic->SetVectorParameterValue(
+  			TEXT("Color"),
+  			FMath::Lerp(
+  				FLinearColor::Blue,
+  				FLinearColor::Red,
+  				TimeElapsed / LerpDuration));
+  
+  		TimeElapsed += DeltaTime;
+  	}
+  }
+  ```
+
   
