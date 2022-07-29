@@ -578,7 +578,11 @@ static bool LineTraceSingleByProfile(
   
   void ACharacterBase::MoveForward(float Value)
   {
+      // 这种方法有问题：人物应用摄像机旋转，摄像机应用控制器旋转时，鼠标完全朝上或朝下，将无法正常行走
   	const FVector Direction = FRotationMatrix(GetController()->GetControlRotation()).GetScaledAxis(EAxis::X);
+      
+      // 这个方法简单，通用
+      const FVector Direction = GetActorForwardVector();
   	AddMovementInput(Direction, Value);
   }
   
@@ -913,6 +917,9 @@ static bool LineTraceSingleByProfile(
   ```
 
 
+
+- 注意：
+  - 但类作为父类时，要使子类也可使用`TimerHandle`，需要用`protected`修饰
 
 
 
@@ -1391,6 +1398,662 @@ static bool LineTraceSingleByProfile(
   
   		TimeElapsed += DeltaTime;
   	}
+  }
+  ```
+
+  
+
+
+
+
+
+### 18. 黑洞
+
+
+
+情景：
+
+- 一个球，可以在一定范围内吸引`开启模拟物理的Actor`
+- 吸到黑洞的`Actor`会被销毁
+
+
+
+示例：
+
+- 简单的材质
+- 黑洞要黑，不能反光
+- 创建材质`Mat_BlackHole`
+- 创建节点`VectorParameter`，设置`RGBA(0, 0, 0, 1)`，连接`基础颜色`
+- 创建常量节点，设置为`0`， 连接其余的选项
+
+
+
+定义：
+
+`BlackHole_Actor.h`
+
+```c++
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "BlackHole_Actor.generated.h"
+
+class UStaticMeshComponent;
+class USphereComponent;
+struct FTimerHandle;
+
+UCLASS()
+class FPSGAME_API ABlackHole_Actor : public AActor
+{
+	GENERATED_BODY()
+	
+public:
+	ABlackHole_Actor();
+	virtual void BeginPlay() override;
+
+/* My Code */
+	// Property
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="BlackHole", meta=(AllowPrivateAccess=true))
+	float BlackHoleActionRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="BlackHole", meta=(AllowPrivateAccess=true))
+	float BlackHoleStrength;
+	
+public:
+	FTimerHandle BlackHoleActionHandle;
+	
+	// Component
+private:
+	UPROPERTY(VisibleAnywhere, Category="A_Hole")
+	UStaticMeshComponent *BlackHoleStaticMeshComp;
+
+	UPROPERTY(VisibleAnywhere, Category="A_Hole")
+	USphereComponent *InnerSphereComp;
+
+	UPROPERTY(VisibleAnywhere, Category="A_Hole")
+	USphereComponent *OuterSphereComp;
+
+public:
+	UFUNCTION()
+	void OverlapInnerSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
+
+	UFUNCTION()
+	void OnBlackHoleAction();
+};
+```
+
+
+
+实现
+
+`BlackHole_Actor.cpp`
+
+```c++
+#include "BlackHole_Actor.h"
+#include "Components/SphereComponent.h"
+
+ABlackHole_Actor::ABlackHole_Actor()
+{
+	PrimaryActorTick.bCanEverTick = false;
+
+	BlackHoleActionRate = 0.05f;
+	BlackHoleStrength = 10000.f;
+
+	BlackHoleStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BlackStaticMesh"));
+	BlackHoleStaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BlackHoleStaticMeshComp->CastShadow = false;
+	RootComponent = BlackHoleStaticMeshComp;
+
+	InnerSphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("InnerSphereComp"));
+	InnerSphereComp->SetSphereRadius(100.f);
+	InnerSphereComp->SetupAttachment(BlackHoleStaticMeshComp);
+	
+	OuterSphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("OuterSphereComp"));
+	OuterSphereComp->SetSphereRadius(3000.f);
+	OuterSphereComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	OuterSphereComp->SetCollisionResponseToAllChannels(ECR_Overlap);
+	OuterSphereComp->SetupAttachment(BlackHoleStaticMeshComp);
+}
+
+void ABlackHole_Actor::BeginPlay()
+{
+	Super::BeginPlay();
+
+	check(InnerSphereComp);
+	check(OuterSphereComp);
+	
+	if (InnerSphereComp)
+	{
+		InnerSphereComp->OnComponentBeginOverlap.AddDynamic(this, &ABlackHole_Actor::OverlapInnerSphere);
+	}
+
+	if (GetWorld())
+	{
+		GetWorldTimerManager().SetTimer(
+			BlackHoleActionHandle,
+			this,
+			&ABlackHole_Actor::OnBlackHoleAction,
+			BlackHoleActionRate,
+			true
+			);
+	}
+}
+
+void ABlackHole_Actor::OverlapInnerSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor){return;}
+	OtherActor->Destroy();
+}
+
+void ABlackHole_Actor::OnBlackHoleAction()
+{
+	TArray<UPrimitiveComponent*> OverlappingComp;
+
+	if (!OuterSphereComp){return;}
+	OuterSphereComp->GetOverlappingComponents(OverlappingComp);
+
+	for (int i = 0; i < OverlappingComp.Num(); ++i)
+	{
+		if (OverlappingComp[i] && OverlappingComp[i]->IsSimulatingPhysics())
+		{
+			const float SphereRadius = OuterSphereComp->GetScaledSphereRadius();
+			OverlappingComp[i]->AddRadialForce(
+				GetActorLocation(),
+				SphereRadius,
+				-BlackHoleStrength,
+				RIF_Constant,
+				true);
+		}
+	}
+}
+```
+
+
+
+
+
+
+
+### 19. 玩家死亡后进入观察
+
+
+
+情景：
+
+- 但玩家死亡后
+- 播放死亡动画
+- 禁用玩家输入
+- 控制器切换控制到`Spectator`
+- 玩家不与其他玩家产生碰撞
+- 玩家外的胶囊体组件无碰撞
+- 死亡动画播放带有布娃娃效果
+- 一定时间后销毁
+
+
+
+示例：
+
+- 前提：
+  - 将死亡动画创建为`蒙太奇动画`
+  - 设置蒙太奇的`启用自动混出`为`false`
+
+
+
+- 代码：
+
+  - 定义
+
+    ```c++
+    class UAnimMontage;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Montage", meta=(AllowPrivateAccess=true))
+    UAnimMontage *AnimMontage_Death;
+    
+    UFUNCTION()
+    void OnDead();
+    ```
+
+  
+
+  - 实现
+
+    ```c++
+    void ASTUCharacterBase::OnDead()
+    {
+    	if (!AnimMontage_Death){return;}
+    	PlayAnimMontage(AnimMontage_Death);
+    	GetCharacterMovement()->DisableMovement();
+    
+    	if (GetController())
+    	{
+    		GetController()->ChangeState(NAME_Spectating);
+    	}
+    	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    	SetLifeSpan(5.0f);
+    
+    	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    	GetMesh()->SetSimulatePhysics(true);
+    }
+    ```
+
+    
+
+
+
+### 20. 高处坠落伤害
+
+
+
+情景：
+
+- 高处下落的速度达到指定值
+- 玩家受到相应的伤害
+- 使用`ACharacter`自带的功能实现
+  - `virtual void Landed(const FHitResult& Hit);`
+  - `FLandedSignature LandedDelegate;`
+
+
+
+示例：
+
+- 介绍：
+
+  `ACharacter.h`
+
+  ```c++
+  	/**
+  	 * Called upon landing when falling, to perform actions based on the Hit result. Triggers the OnLanded event.
+  	 * Note that movement mode is still "Falling" during this event. Current Velocity value is the velocity at the time of landing.
+  	 * Consider OnMovementModeChanged() as well, as that can be used once the movement mode changes to the new mode (most likely Walking).
+  	 *
+  	 * @param Hit Result describing the landing that resulted in a valid landing spot.
+  	 * @see OnMovementModeChanged()
+  	 */
+  	virtual void Landed(const FHitResult& Hit);
+  
+  /**
+  * 落地时调用，根据命中结果执行动作。 触发 OnLanded 事件。
+  * 请注意，此活动期间移动模式仍为“下降”。 当前速度值是着陆时的速度。
+  * 还要考虑 OnMovementModeChanged()，因为一旦移动模式更改为新模式（很可能是步行），就可以使用它。
+  *
+  * @param Hit Result 描述了导致有效着陆点的着陆。
+  * @see OnMovementModeChanged()
+  */
+  	FLandedSignature LandedDelegate;	
+  ```
+
+
+
+- 定义：
+
+  ```c++
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FallingDamage", meta=(AllowPrivateAccess=true))
+  FVector2D LandedDamageVelocity;
+  
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FallingDamage", meta=(AllowPrivateAccess=true))
+  FVector2D LandedDamage;
+  
+  UFUNCTION()
+  void OnGroundLanded(const FHitResult& HitResult);
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  void ASTUCharacterBase::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	LandedDelegate.AddDynamic(this, &ASTUCharacterBase::OnGroundLanded);
+  }
+  
+  void ASTUCharacterBase::OnGroundLanded(const FHitResult& HitResult)
+  {
+  	const float FallVelocityZ = -GetVelocity().Z;
+  
+  	if (FallVelocityZ < LandedDamageVelocity.X){return;}
+  	const float FinalDamage = FMath::GetMappedRangeValueClamped(LandedDamageVelocity,
+  		LandedDamage, FallVelocityZ);
+  	TakeDamage(FinalDamage, FDamageEvent{}, nullptr, nullptr);
+  }
+  
+  
+  # FMath::GetMappedRangeValueClamped() --> UnrealMathUtility.h
+  // For the given Value clamped to the [Input:Range] inclusive, returns the corresponding percentage in [Output:Range] Inclusive
+  // 对于钳制到 [Input:Range] 的给定值，返回 [Output:Range] 包含的相应百分比
+  ```
+
+  
+
+
+
+
+
+### 21. FindAnimNotifyByClass
+
+
+
+情景：
+
+- 按类型`UAnimSequenceBase`中查找`FAnimNotifyEvent`
+- 再绑定对应的通知事件
+
+
+
+示例：
+
+- 前提：
+
+  创建`AnimNotifyEventUntility.h`
+
+  ```c++
+  #pragma once
+  
+  class AnimNotifyEventUntility
+  {
+  public:
+  	template<typename T>
+  	static T* FindNotifyByClass(UAnimSequenceBase* AnimSequenceBase)
+  	{
+  		if (!AnimSequenceBase){return nullptr;}
+  
+  		const auto NotifyEvents = AnimSequenceBase->Notifies;
+  		for (const auto& NotifyEvent : NotifyEvents)
+  		{
+  			if (const auto AnimNotify = Cast<T>(NotifyEvent.Notify))
+  			{
+  				return AnimNotify;
+  			}
+  		}
+  		return nullptr;
+  	}
+  };
+  ```
+
+  
+
+  创建`AnimNotifyBase.h`
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "Animation/AnimNotifies/AnimNotify.h"
+  #include "STUAnimNotifyBase.generated.h"
+  
+  class USkeletalMeshComponent;
+  
+  DECLARE_MULTICAST_DELEGATE_OneParam(FOnNotifySignature, USkeletalMeshComponent*)
+  
+  UCLASS()
+  class B_01_TPS_API UAnimNotifyBase : public UAnimNotify
+  {
+  	GENERATED_BODY()
+  
+  public:
+  	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+  
+  /* My Code */
+  	// Property
+  	FOnNotifySignature OnNotify;	
+  };
+  
+  # Notify
+  // 是 AnimNotify 自带的函数，同时不建议 UE5 使用
+  ```
+
+  
+
+  实现`AnimNotifyBase.cpp`
+
+  ```c++
+  #include "AnimNotifyBase.h"
+  
+  void USTUAnimNotifyBase::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+  {
+  	Super::Notify(MeshComp, Animation);
+  
+  	OnNotify.Broadcast(MeshComp);
+  }
+  ```
+
+  
+
+
+
+- 定义：
+
+  ```c++
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon", meta=(AllowPrivateAccess=true))
+  UAnimMontage *EquipAnimMontage;
+  
+  UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Weapon", meta=(AllowPrivateAccess=true))
+  bool IsEquipAnimInProgress;
+  
+  UFUNCTION()
+  void InitAnimations();
+  
+  UFUNCTION()
+  void OnEquipFinished(USkeletalMeshComponent* SkeletalMeshComponent);
+  ```
+
+  
+
+- 实现：
+
+  ```c++
+  #include "AnimNotify/AnimNotifyEventUntility.h"
+  
+  void USTUWeaponActorComponent::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	InitAnimations();
+  }
+  
+  void USTUWeaponActorComponent::InitAnimations()
+  {
+  	if (const auto EquipFinishedNotify = 
+          AnimUtils::FindNotifyByClass<USTUAnimNotifyEquipFinished>(EquipAnimMontage))
+  	{
+  		EquipFinishedNotify->OnNotify.AddUObject(this, &USTUWeaponActorComponent::OnEquipFinished);
+  	}
+  	else
+  	{
+  		checkNoEntry();
+  	}
+  }
+  
+  void USTUWeaponActorComponent::OnEquipFinished(USkeletalMeshComponent* SkeletalMeshComponent)
+  {
+  	const ASTUCharacterBase *Character = Cast<ASTUCharacterBase>(GetOwner());
+  
+  	if (!Character || !(Character->GetMesh() == SkeletalMeshComponent)){return;}
+  	IsEquipAnimInProgress = false;
+  }
+  
+  # USTUAnimNotifyEquipFinished
+  // 是AnimNotifyBase的子类
+  // 里面不用写东西
+  // 主要是用来：修改备注名，修改颜色，绑定事件
+  ```
+
+  
+
+
+
+
+
+### 22. 类生成附加到插槽
+
+
+
+情景：
+
+- 用指定的组件开始生成
+
+- `BeginPlay()`时开始
+
+- 指定要生成的`class`
+- 以有需要附加的插槽``
+- 将生成的对象附加到插槽上，并应用插槽的`transform`
+- `EndPlay()`结束后，生成的`Actor`也要销毁
+
+
+
+示例：
+
+- 定义：`UWeaponActorComponent.h`
+
+  ```c++
+  UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+  class B_01_TPS_API USTUWeaponActorComponent : public UActorComponent
+  {
+  	GENERATED_BODY()
+  
+  public:
+  	USTUWeaponActorComponent();
+  
+  protected:
+  	virtual void BeginPlay() override;
+  	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+  	
+  /* My Code */
+  	// Property
+  private:
+      UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon", meta=(AllowPrivateAccess=true))
+  	TSubclassOf<ASTUWeaponBase> WeaponClass;
+      
+      UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon", meta=(AllowPrivateAccess=true))
+  	FName WeaponEquipSocketName;
+      
+      UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon", meta=(AllowPrivateAccess=true))
+  	ASTUWeaponBase *CurrentWeapon;
+      
+      // Function
+  public:
+  	UFUNCTION()
+  	void SpawnWeapons();
+      
+      UFUNCTION()
+  	void AttachWeaponToSocket(ASTUWeaponBase* Weapon, USceneComponent* SceneComponent, const FName& SocketName);
+  }
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  USTUWeaponActorComponent::USTUWeaponActorComponent()
+  {
+  	PrimaryComponentTick.bCanEverTick = false;
+  
+  	WeaponEquipSocketName = TEXT("WeaponSocket");
+      WeaponClass = nullptr
+  	CurrentWeapon = nullptr;
+  }
+  
+  void USTUWeaponActorComponent::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	SpawnWeapons();
+  }
+  
+  void USTUWeaponActorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+  {
+  	CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+  	CurrentWeapon->Destroy();
+      CurrentWeapon = nullptr;
+  
+  	Super::EndPlay(EndPlayReason);
+  }
+  
+  void USTUWeaponActorComponent::SpawnWeapons()
+  {
+  	if (!GetWorld()){return;}
+  	ASTUCharacterBase *Character = Cast<ASTUCharacterBase>(GetOwner());
+  
+  	if (!Character){return;}
+      const auto Weapon = GetWorld()->SpawnActor<ASTUWeaponBase>(WeaponClass);
+      
+  	if (!Weapon){continue;}
+      CurrentWeapon = Weapon;
+  	CurrentWeapon->SetOwner(Character);
+      
+  	AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponEquipSocketName);
+  }
+  
+  void USTUWeaponActorComponent::AttachWeaponToSocket(ASTUWeaponBase* Weapon, USceneComponent* SceneComponent,
+                                                      const FName& SocketName)
+  {
+  	if (!Weapon || !SceneComponent){return;}
+  	const FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, false);
+  	Weapon->AttachToComponent(SceneComponent, AttachmentTransformRules, SocketName);
+  }
+  ```
+
+  
+
+
+
+### 23. CameraShake
+
+
+
+情景：
+
+- 在`UHealthActorComponent`中实现`CameraShake`
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  public:
+  	USTUHealthActorComponent();
+  
+  private:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HPComp|Camera", meta=(AllowPrivateAccess=true))
+  	TSubclassOf<UCameraShakeBase> CameraShake;
+  
+  public:
+  	UFUNCTION()
+  	void PlayCameraShake();
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUHealthActorComponent.h"
+  
+  USTUHealthActorComponent::USTUHealthActorComponent()
+  {
+  	PrimaryComponentTick.bCanEverTick = false;
+  
+  	CameraShake = nullptr;
+  }
+  
+  void USTUHealthActorComponent::PlayCameraShake()
+  {
+  	const auto Player = Cast<APawn>(GetOwner());
+  
+  	if (!Player){return;}
+  	const auto Controller = Player->GetController<APlayerController>();
+  
+  	if (!Controller || !Controller->PlayerCameraManager){return;}
+  	Controller->PlayerCameraManager->StartCameraShake(CameraShake);
   }
   ```
 
