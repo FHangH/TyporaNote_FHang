@@ -1986,6 +1986,8 @@ void ABlackHole_Actor::OnBlackHoleAction()
       
   	if (!Weapon){continue;}
       CurrentWeapon = Weapon;
+      
+      // 此处留一个伏笔，当前武器指定了 Onwer 是当前的玩家
   	CurrentWeapon->SetOwner(Character);
       
   	AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponEquipSocketName);
@@ -1999,7 +2001,7 @@ void ABlackHole_Actor::OnBlackHoleAction()
   	Weapon->AttachToComponent(SceneComponent, AttachmentTransformRules, SocketName);
   }
   ```
-
+  
   
 
 
@@ -2054,6 +2056,1326 @@ void ABlackHole_Actor::OnBlackHoleAction()
   
   	if (!Controller || !Controller->PlayerCameraManager){return;}
   	Controller->PlayerCameraManager->StartCameraShake(CameraShake);
+  }
+  ```
+
+
+
+
+
+
+
+
+### 24. HealthComponent
+
+
+
+情景：
+
+- 设计一个角色的生命组件
+- 有生命值
+- 有伤害处理
+- 呼吸回血效果
+- 有处理玩家死亡效果
+
+
+
+前提：
+
+- 定义玩家类：`ACharacterBase`
+- 定义生命组件类：`UHealthComponent`
+
+
+
+结构分析：
+
+- 玩家类中的`OnDead`效果对应于生命组件类中的`OnDead`
+- 生命组件类：
+  - 可以通过蓝图获得`CurrentHP`，`MaxHP`，`IsDead`
+  - 通过`TimerHandle`实现呼吸回血效果
+
+
+
+示例：
+
+- 生命组件类
+
+- 定义：
+
+  ```c++
+  DECLARE_MULTICAST_DELEGATE(FOnDead);
+  DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float);
+  
+  struct FTimerHandle;
+  
+  UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+  class B_01_TPS_API USTUHealthActorComponent : public UActorComponent
+  {
+  	GENERATED_BODY()
+  
+  public:
+  	USTUHealthActorComponent();
+  
+  protected:
+  	virtual void BeginPlay() override;
+  
+  /* My Code */
+  	// Property
+  private:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HPComp", meta=(AllowPrivateAccess=true))
+  	float Health;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HPComp", meta=(AllowPrivateAccess=true))
+  	float MaxHealth;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HPComp|Heal", meta=(AllowPrivateAccess=true))
+  	bool IsAutoHeal;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HPComp|Heal",
+  		meta=(AllowPrivateAccess=true, EditCondition="IsAutoHeal"))
+  	float HealUpdateTime;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HPComp|Heal",
+  	meta=(AllowPrivateAccess=true, EditCondition="IsAutoHeal"))
+  	float HealDelayTime;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HPComp|Heal",
+  	meta=(AllowPrivateAccess=true, EditCondition="IsAutoHeal"))
+  	float HealModifierValue;
+  	
+  public:
+  	FTimerHandle HealTimerHandle;
+  	FOnDead OnDead;
+  	FOnHealthChanged OnHealthChanged;
+  	
+  	// Function	
+  public:
+  	UFUNCTION(BlueprintCallable)
+  	FORCEINLINE float GetHP() const {return Health;}
+  	
+  	UFUNCTION()
+  	void OnTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType,
+  		class AController* InstigatedBy, AActor* DamageCauser);
+  	
+  	UFUNCTION(BlueprintCallable)
+  	bool IsDead() const {return FMath::IsNearlyZero(Health);}
+  
+  	UFUNCTION()
+  	void HealUpdate();
+      
+  	UFUNCTION()
+  	void SetHealth(float NewHealth);
+  };
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUHealthActorComponent.h"
+  
+  USTUHealthActorComponent::USTUHealthActorComponent()
+  {
+  	PrimaryComponentTick.bCanEverTick = false;
+  
+  	Health = 0.f;
+  	MaxHealth = 100.f;
+  
+  	IsAutoHeal = true;
+  	HealUpdateTime = 1.f;
+  	HealDelayTime = 4.f;
+  	HealModifierValue = 10.f;
+  }
+  
+  void USTUHealthActorComponent::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+      SetHealth(MaxHealth);
+  
+  	if (GetOwner())
+  	{
+  		GetOwner()->OnTakeAnyDamage.AddDynamic(this, &USTUHealthActorComponent::OnTakeAnyDamage);
+  	}
+  }
+  
+  /* My Code */
+  void USTUHealthActorComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+  	AController* InstigatedBy, AActor* DamageCauser)
+  {
+  	if (Health <= 0.f || IsDead() || !GetWorld()){return;}
+  	SetHealth(Health -  Damage);
+  
+  	if (IsDead())
+  	{
+  		OnDead.Broadcast();
+  	}
+  	else if (IsAutoHeal)
+  	{
+  		GetWorld()->GetTimerManager().SetTimer(HealTimerHandle, this, &USTUHealthActorComponent::HealUpdate,
+  			HealUpdateTime, IsAutoHeal, HealDelayTime);
+  	}
+  }
+  
+  void USTUHealthActorComponent::HealUpdate()
+  {
+  	SetHealth(Health += HealModifierValue);
+  
+  	if (!FMath::IsNearlyEqual(Health, MaxHealth) || !GetWorld()){return;}
+  	GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
+  }
+  
+  void USTUHealthActorComponent::SetHealth(float NewHealth)
+  {
+  	Health = FMath::Clamp(NewHealth, 0.f, MaxHealth);
+  }
+  ```
+
+
+
+- 玩家类
+
+- 定义：
+
+  ```c++
+  class USTUHealthActorComponent;
+  
+  public:
+  	ASTUCharacterBase();
+  
+  protected:
+  	virtual void BeginPlay() override;
+  
+  /* My Code */
+  	// Component
+  private:
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Component", meta=(AllowPrivateAccess=true))
+  	USTUHealthActorComponent *HealthActorComponent;
+  
+  	// Function
+  public:
+  	UFUNCTION()
+  	void OnDead();
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUHealthActorComponent.h"
+  
+  ASTUCharacterBase::ASTUCharacterBase()
+  {
+      PrimaryActorTick.bCanEverTick = false;
+      
+      HealthActorComponent = CreateDefaultSubobject<USTUHealthActorComponent>(TEXT("HPComp"));
+  }
+  
+  void ASTUCharacterBase::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	check(HealthActorComponent);
+  	HealthActorComponent->OnDead.AddUObject(this, &ASTUCharacterBase::OnDead);
+  }
+  
+  void ASTUCharacterBase::OnDead()
+  {
+      // OnDead Event
+  }
+  ```
+
+  
+
+
+
+### 25. GetActorComponent
+
+
+
+情景：
+
+- 需要通过已有的`Actor`获得其已添加的`Component`
+- 将这个方法提取成一个`模板工具类`
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  class FH_Utility
+  {
+  public:
+  	template<typename T>
+  	FORCEINLINE static T* GetActorComponent(const AActor* Actor)
+  	{
+  		if (!Actor){return nullptr;}
+  		const auto Component = Actor->GetComponentByClass(T::StaticClass());
+  		T* ResultComponent = Cast<T>(Component);
+  
+  		if (!ResultComponent){return nullptr;}
+  		return ResultComponent;
+  	}
+  };
+  ```
+
+
+
+
+
+
+
+
+### 26. 设计结构体和委托
+
+
+
+情景：
+
+- 将一类`结构体`或`Delegate`写进单独的类中
+- 便于管理
+
+
+
+示例：
+
+- 定义：`FH_CoreType.h`
+
+  ```c++
+  #pragma once
+  
+  #include "FH_CoreType.generated.h" // 因为使用了Delegate 和 USTRUCT，这里要手动加入
+  
+  class ASTUWeaponBase;
+  class UAnimMontage;
+  
+  // Delegate 的定义可以写在这里
+  DECLARE_MULTICAST_DELEGATE(FOnDead);
+  DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float);
+  
+  // 可以定义结构体，USTRCUT() 内加入 BlueprintType, 蓝图就可以或这个结构体
+  USTRUCT(BlueprintType)
+  struct FAmmoData
+  {
+  	GENERATED_USTRUCT_BODY() // 原：GENERATED_BODY() 需改为 GENERATED_USTRUCT_BODY()
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ammo",  meta=(AllowPrivateAccess=true))
+  	int32 Bullets = 0;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ammo",
+  			  meta=(AllowPrivateAccess=true, EditCondition="!IsInfinity"))
+  	int32 Clips = 0;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ammo",  meta=(AllowPrivateAccess=true))
+  	bool IsInfinity = false;
+  };
+  
+  USTRUCT(BlueprintType)
+  struct FWeaponData
+  {
+  	GENERATED_USTRUCT_BODY()
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ReloadWeapon", meta=(AllowPrivateAccess=true))
+  	TSubclassOf<ASTUWeaponBase> WeaponClass = nullptr;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ReloadWeapon", meta=(AllowPrivateAccess=true))
+  	UAnimMontage* ReloadAnimMontage = nullptr;
+  };
+  ```
+
+
+
+
+
+
+
+### 27. AIPerception获得最近Actor
+
+
+
+情景：
+
+- `AI`绑定了`AIPerceptionComponent`
+- 设置`AISense`：例如--目光`UAISense_Sight`
+- 利用`GetCurrentlyPerceivedActors`获得目光内的有效`Actor`
+- 通过`Actor`获得其前面`HealthComponent`，判断`Actor`是否符合需求
+- 最后通过算法，求得并返回离`AI`最近的`Actor`
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "Perception/AIPerceptionComponent.h"
+  #include "STUAIPerceptionComponent.generated.h"
+  
+  UCLASS()
+  class B_01_TPS_API USTUAIPerceptionComponent : public UAIPerceptionComponent
+  {
+  	GENERATED_BODY()
+  
+  /* My Code */
+  	// Function
+  public:
+  	UFUNCTION()
+  	AActor* GetClosetActor() const;
+  };
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUAIPerceptionComponent.h"
+  #include "AIController.h"
+  #include "STUHealthActorComponent.h"
+  #include "B_01_TPS/Dev/STUUtils.h"
+  #include "Perception/AISense_Sight.h"
+  
+  AActor* USTUAIPerceptionComponent::GetClosetActor() const
+  {
+  	TArray<AActor*> PerceptionActors;
+      
+      // AIPerceptionComponent自带的函数，获得所有已经被感知的Actor
+  	GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), PerceptionActors);
+  
+      // 判断组件的拥有AI是否有AIController
+  	if (PerceptionActors.Num() <= 0){return nullptr;}
+  	const auto Controller = Cast<AAIController>(GetOwner());
+  
+      // 判断当前AI是否有效
+  	if (!Controller){return nullptr;}
+  	const auto Pawn = Controller->GetPawn();
+  
+      // 开始计算最近的Actor
+  	if (!Pawn){return nullptr;}
+      
+      // MAX_FLT 是 UnrealEngine 自带的 UrealMathUtility 中的 宏
+      // #define MAX_FLT 3.402823466e+38F
+      // 表示可虚幻引擎可表达的 最大浮点数
+  	float NealDistance = MAX_FLT;
+  	AActor* NealPawn = nullptr;
+  	for (const auto& PerceptionActor : PerceptionActors)
+  	{
+          // 此处使用了前面创建的 HealthComponent 和 FH_Utility
+          // 判断 感知到的Actor是否有生命组件，是否还活着
+  		const auto HealthComp = STUUtils::GetSTUPlayerComponent<USTUHealthActorComponent>(PerceptionActor);
+  		
+          if (!HealthComp || HealthComp->IsDead()){return nullptr;}
+          const auto CurrentDistance = (PerceptionActor->GetActorLocation() - Pawn->GetActorLocation()).Size();
+  		
+          // 找出最近距离的Actor
+          if (CurrentDistance < NealDistance)
+  		{
+  			NealDistance = CurrentDistance;
+  			NealPawn = PerceptionActor;
+  		}
+  	}
+  	return NealPawn;
+  }
+  ```
+
+
+
+
+
+
+
+### 28. GameMode
+
+
+
+情景：
+
+- 通过`GameModeBase`进行初始化
+
+
+
+示例：
+
+- 实现：
+
+  ```c++
+  ASTUGameModeBase::ASTUGameModeBase()
+  {
+  	DefaultPawnClass = ASTUCharacterBase::StaticClass();
+  	PlayerControllerClass = ASTUPlayerController::StaticClass();
+  	HUDClass = ASTUGameHUD::StaticClass();
+  }
+  ```
+
+
+
+
+
+
+
+### 29. 拾取物-PickUp
+
+
+
+情景：
+
+- 创建`PickUpBase`
+- 可被放置在场景中
+- 可以`Actor`重叠检查
+- 不与`Actor`产生`BlockHit`
+- 拾取后不销毁，隐藏起来，一段时间重生，`TimerHandle`
+- 物品默认旋转，拾取后关闭旋转，重生后开启旋转，`TimerHandle`
+- 被拾取后，让拾取的`Actor`执行指定的`Function`，`Virtual Function`
+- 具体执行的功能，通过子类去实现
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "GameFramework/Actor.h"
+  #include "STUBasePickUp.generated.h"
+  
+  class USphereComponent;
+  class UStaticMeshComponent;
+  struct FTimerHandle;
+  
+  UCLASS()
+  class B_01_TPS_API ASTUBasePickUp : public AActor
+  {
+  	GENERATED_BODY()
+  	
+  public:
+  	ASTUBasePickUp();
+  
+  protected:
+  	virtual void BeginPlay() override;
+  	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+  
+  /* My Code */
+  	// Property
+  protected:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PickUp", meta=(AllowPrivateAccess=true))
+  	float RespawnTime;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PickUp", meta=(ClampMin=0.0333, ClampMax=0.0083))
+  	float RotationYawRate;
+      
+      FTimerHandle RespawnHandle;
+  
+  	FTimerHandle RotationYawHandle;
+  	
+  	// Component
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="PickUp", meta=(AllowPrivateAccess=true))
+  	USphereComponent* CollisionComponent;
+  
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="PickUp", meta=(AllowPrivateAccess=true))
+  	UStaticMeshComponent* StaticMeshComponent;
+  
+  	// Function
+  public:
+  	UFUNCTION()
+  	void ConstructorProperty();
+  
+  	UFUNCTION()
+  	void ConstructorComponent();
+  
+  	UFUNCTION()
+  	void PickUpWasTaken();
+  
+  	UFUNCTION()
+  	void Respawn();
+  
+  	UFUNCTION()
+  	void LoopRotationYawHandle();
+  
+  	UFUNCTION()
+  	void BeginRotationYaw();
+  
+  	UFUNCTION()
+  	virtual bool GivePickUpTo(APawn* PlayerPawn) { return false; }
+  };
+  
+  # NotifyActorBeginOverlap(AActor* OtherActor)
+  	/** 
+  	 *	Event when this actor overlaps another actor, for example a player walking into a trigger.
+  	 *	For events when objects have a blocking collision, for example a player hitting a wall, see 'Hit' events.
+  	 *	@note Components on both this and the other Actor must have bGenerateOverlapEvents set to true to generate overlap events.
+  	 */
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUBasePickUp.h"
+  #include "Components/SphereComponent.h"
+  
+  ASTUBasePickUp::ASTUBasePickUp()
+  {
+  	PrimaryActorTick.bCanEverTick = false;
+  
+      RespawnTime = 5.0f;
+  	RotationYawRate = 0.0333f;
+      
+      CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
+  	RootComponent = CollisionComponent;
+  	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+  	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
+  	CollisionComponent->InitSphereRadius(50.f);
+  
+  	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+  	StaticMeshComponent->SetupAttachment(RootComponent);
+  	StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+  	StaticMeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+  }
+  
+  void ASTUBasePickUp::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	check(CollisionComponent);
+  	check(StaticMeshComponent);
+  
+  	LoopRotationYawHandle();
+  }
+  
+  void ASTUBasePickUp::NotifyActorBeginOverlap(AActor* OtherActor)
+  {
+  	Super::NotifyActorBeginOverlap(OtherActor);
+  
+  	const auto Player = Cast<APawn>(OtherActor);
+  	
+  	if (!GivePickUpTo(Player)){return;}
+  	PickUpWasTaken();
+  }
+  
+  /* My Code */
+  void ASTUBasePickUp::PickUpWasTaken()
+  {
+  	if (!GetRootComponent()){return;}
+  	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+  	GetRootComponent()->SetVisibility(false, true);
+      
+  	GetWorldTimerManager().SetTimer(RespawnHandle, this, &ASTUBasePickUp::Respawn, RespawnTime, false);
+  	GetWorldTimerManager().ClearTimer(RotationYawHandle);
+  }
+  
+  void ASTUBasePickUp::Respawn()
+  {
+  	if (!GetRootComponent()){return;}
+  	CollisionComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
+  	GetRootComponent()->SetVisibility(true, true);
+      
+  	GetWorldTimerManager().ClearTimer(RespawnHandle);
+  	LoopRotationYawHandle();
+  }
+  
+  void ASTUBasePickUp::LoopRotationYawHandle()
+  {
+  	if (!StaticMeshComponent && !RespawnHandle.IsValid()){return;}
+  	GetWorldTimerManager().SetTimer(
+          RotationYawHandle, 
+          this, 
+          &ASTUBasePickUp::BeginRotationYaw, 
+          RotationYawRate, 
+          true);
+  }
+  
+  void ASTUBasePickUp::BeginRotationYaw()
+  {
+  	StaticMeshComponent->AddRelativeRotation(FRotator(0, 1.f, 0.f));
+  }
+  ```
+
+
+
+- 注意：
+
+  ```c++
+  # 示例中是通过 AActor 自带的 NotifyActorBeginOverlap(AActor* OtherActor) 实现交互
+  # 也可以通过 USphereComponent->UShapeComponent->UPrimitiveComponent 内的 FComponentHitSignature OnComponentHit; 实现交互
+  
+  ################## 委托名称 ###############
+  /** 
+  	 *	Event called when a component hits (or is hit by) something solid. This could happen due to things like Character movement, using Set Location with 'sweep' enabled, or physics simulation.
+  	 *	For events when objects overlap (e.g. walking into a trigger) see the 'Overlap' event.
+  	 *
+  	 *	@note For collisions during physics simulation to generate hit events, 'Simulation Generates Hit Events' must be enabled for this component.
+  	 *	@note When receiving a hit from another object's movement, the directions of 'Hit.Normal' and 'Hit.ImpactNormal'
+  	 *	will be adjusted to indicate force from the other object against this object.
+  	 *	@note NormalImpulse will be filled in for physics-simulating bodies, but will be zero for swept-component blocking collisions.
+  	 */
+  	UPROPERTY(BlueprintAssignable, Category="Collision")
+  	FComponentHitSignature OnComponentHit;
+  
+  ################### 委托绑定的函数参数列表 ##################
+  
+  /**
+   * Delegate for notification of blocking collision against a specific component.  
+   * NormalImpulse will be filled in for physics-simulating bodies, but will be zero for swept-component blocking collisions. 
+   */
+  DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_FiveParams( FComponentHitSignature, UPrimitiveComponent, OnComponentHit, UPrimitiveComponent*, HitComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, FVector, NormalImpulse, const FHitResult&, Hit );
+  ```
+
+  
+
+
+
+
+
+### 30. AIController
+
+
+
+情景：
+
+- 与前面`AIPerception获得最近Actor`想关联
+- 利用`AIPerceptionComponent`获取`最近的Actor`
+- 通过`TimerHandle`控制检测频率
+- 通过获得黑板组件，获得设置的`最近的Actor`
+- 让`AIControlller`控制`AI`面向`最近的Actor`
+- `AIController`获得自己绑定的`AI`，执行有效的`BehaviorTree`
+- 通过`FName`手动指定获得黑板组件中指定的`Key`
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "AIController.h"
+  #include "STUAIController.generated.h"
+  
+  class USTUAIPerceptionComponent;
+  struct FTimerHandle;
+  
+  UCLASS()
+  class B_01_TPS_API ASTUAIController : public AAIController
+  {
+  	GENERATED_BODY()
+  
+  public:
+  	ASTUAIController();
+  	
+  protected:
+  	virtual void OnPossess(APawn* InPawn) override;
+  	virtual void BeginPlay() override;
+  
+  /* My Code */
+  	// Property
+  private:
+  	UPROPERTY()
+  	bool IsRunBehavior;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI", meta=(AllowPrivateAccess=true))
+  	float CheckRate;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI", meta=(AllowPrivateAccess=true))
+  	FName FocusOnKeyName;
+  	
+  public:
+  	FTimerHandle CheckClosetEnemyTimerHandle;
+  	
+  	// Component
+  private:
+  	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="AI", meta=(AllowPrivateAccess=true))
+  	USTUAIPerceptionComponent* AIPerceptionComponent;
+  
+  	// Function
+  public:
+  	UFUNCTION()
+  	void OnCheckClosetEnemy();
+  
+  	UFUNCTION()
+  	AActor* GetFocusOnActor() const;
+  };
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUAIController.h"
+  #include "STUAI.h"
+  #include "BehaviorTree/BlackboardComponent.h"
+  #include "B_01_TPS/Component/STUAIPerceptionComponent.h"
+  
+  ASTUAIController::ASTUAIController()
+  {
+  	IsRunBehavior = false;
+  	CheckRate = 0.1f;
+      
+      // 此处指定要访问 黑板组件 的 keyName
+  	FocusOnKeyName = "EnemyActor";
+  	
+      // 此处指定初始化 AIPerceptionComponent
+  	AIPerceptionComponent = CreateDefaultSubobject<USTUAIPerceptionComponent>(TEXT("AIPerceptionComp"));
+  	if (AIPerceptionComponent){SetPerceptionComponent(*AIPerceptionComponent);}
+  }
+  
+  void ASTUAIController::OnPossess(APawn* InPawn)
+  {
+  	Super::OnPossess(InPawn);
+  
+  	const auto STUCharacter = Cast<ASTUAI>(InPawn);
+  
+      // 此处执行 AI绑定的 BehaviorTree
+  	if (!STUCharacter || !STUCharacter->GetBehaviorTreeAsset()){return;}
+  	IsRunBehavior = RunBehaviorTree(STUCharacter->GetBehaviorTreeAsset());
+  }
+  
+  void ASTUAIController::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+      // 开始按频率 检测最近的Actor
+  	if (GetWorld() && IsRunBehavior)
+  	{
+  		GetWorldTimerManager().SetTimer(
+  			CheckClosetEnemyTimerHandle,
+  			this,
+  			&ASTUAIController::OnCheckClosetEnemy,
+  			CheckRate,
+  			true);
+  	}
+  }
+  
+  // 设置 AI面向 最近的 Actor
+  void ASTUAIController::OnCheckClosetEnemy()
+  {
+  	const auto AimActor = GetFocusOnActor();
+  	SetFocus(AimActor);
+  }
+  
+  // 在黑板组件的指定key中 拿到以设置的 最近的Actor
+  AActor* ASTUAIController::GetFocusOnActor() const
+  {
+  	if (!GetBlackboardComponent()){return nullptr;}
+  	return Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(FocusOnKeyName));
+  }
+  ```
+
+
+
+
+
+
+
+### 31. AI初始化和过渡旋转
+
+
+
+情景：
+
+- 初始化一个基本的`AI`
+- 通过前面的`AIController`已经可以面向最近的`Actor`，但旋转没有过渡，需要实现过渡
+- 关联相应的`BehaviorTree`
+- 有`Dead`相关函数，方便通过`AIcontroller`停止`AI`的行为
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "B_01_TPS/Player/STUCharacterBase.h"
+  #include "STUAI.generated.h"
+  
+  class UBehaviorTree;
+  
+  UCLASS()
+  class B_01_TPS_API ASTUAI : public ASTUCharacterBase
+  {
+  	GENERATED_BODY()
+  
+  protected:
+  	ASTUAI(const FObjectInitializer& ObjectInit);
+  
+  /* My Code */
+  	// Property
+  private:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI", meta=(AllowPrivateAccess=true))
+  	UBehaviorTree* BehaviorTreeAsset;
+  
+  public:
+  	UFUNCTION()
+  	FORCEINLINE UBehaviorTree* GetBehaviorTreeAsset() const {return BehaviorTreeAsset;}
+  
+  	virtual void OnDead() override;
+  };
+  ```
+
+  
+
+- 实现：
+
+  ```c++
+  #include "STUAI.h"
+  #include "BrainComponent.h"
+  #include "STUAIController.h"
+  #include "B_01_TPS/Component/STUAIWeaponActorComponent.h"
+  #include "B_01_TPS/Component/STUCharacterMovementComponent.h"
+  
+  ASTUAI::ASTUAI(const FObjectInitializer& ObjectInit) :
+  Super(ObjectInit.SetDefaultSubobjectClass<USTUAIWeaponActorComponent>("WeaponActorComponent"))
+  {
+      // 初始化 AI 和 AIController
+  	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+  	AIControllerClass = ASTUAIController::StaticClass();
+  	
+      // 利用 CharacterMovementComponent 设置 AI 旋转面向 最近Actor 的过渡效果
+  	if (GetCharacterMovement())
+  	{
+  		bUseControllerRotationYaw = false;
+  		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+  		GetCharacterMovement()->RotationRate = FRotator(0.f, 200.f, 0.f);
+  	}
+  }
+  
+  void ASTUAI::OnDead()
+  {
+  	Super::OnDead();
+  
+      // 通知 AIController 停止 AI行为
+  	const auto STUController = Cast<AAIController>(Controller);
+  	if (STUController && STUController->BrainComponent)
+  	{
+  		STUController->BrainComponent->Cleanup();
+  	}
+  }
+  ```
+
+  
+
+
+
+
+
+### 32. BeHaviorTree Task
+
+
+
+情景：
+
+- `AI Task`的关键信息是`AIController`和`BlackBoardComp`
+- 通过`AIController`获得绑定的`AI Pawn`
+- 通过`UNavigationSystemV1`获得场景的`NavMesh`导航
+- 利用`BlackBoardComp`获得和设置`Key`值
+- 以玩家随机进入下一个场景随机点为例
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "BehaviorTree/BTTaskNode.h"
+  #include "STUNextLocationTask.generated.h"
+  
+  struct FBlackboardKeySelector;
+  
+  UCLASS()
+  class B_01_TPS_API USTUNextLocationTask : public UBTTaskNode
+  {
+  	GENERATED_BODY()
+  
+  public:
+  	USTUNextLocationTask();
+  
+  protected:
+  	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+  
+  /* My Code */
+  	// Property
+  private:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI|Task", meta=(AllowPrivateAccess=true))
+  	float Radius;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI|Task", meta=(AllowPrivateAccess=true))
+  	FBlackboardKeySelector AimLocationKey;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI|Task", meta=(AllowPrivateAccess=true))
+  	bool IsSelfCenter;
+  
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI|Task",
+  		meta=(AllowPrivateAccess=true, EditCondition="!IsSelfCenter"))
+  	FBlackboardKeySelector CenterActorKey;
+  };
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUNextLocationTask.h"
+  
+  #include "AIController.h"
+  #include "NavigationSystem.h"
+  #include "BehaviorTree/BlackboardComponent.h"
+  
+  USTUNextLocationTask::USTUNextLocationTask()
+  {
+  	Radius = 1000.f;
+  	NodeName = "Next Location";
+  	IsSelfCenter = true;
+  }
+  
+  EBTNodeResult::Type USTUNextLocationTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+  {
+      // 获得 AIController 和 BlackBoardComp
+  	const auto Controller = OwnerComp.GetAIOwner();
+  	const auto BlackBoard = OwnerComp.GetBlackboardComponent();
+  
+      // 通过 AIController 获得 AI Pawn
+  	if (!Controller || !BlackBoard){return EBTNodeResult::Failed;}
+  	const auto Pawn = Controller->GetPawn();
+  
+      // 获得场景中的 NavMeshSystem
+  	if (!Pawn){return EBTNodeResult::Failed;}
+  	const auto NavSys = UNavigationSystemV1::GetCurrent(Pawn);
+  
+      // 先获得 AI 当前的位置
+  	if (!NavSys){return EBTNodeResult::Failed;}
+  	FNavLocation NavLocation;
+  	auto Location = Pawn->GetActorLocation();
+  
+      // 判断 AI 是否已经到达 随机的位置
+      // 通过 黑板组件获得 指定位置的 AI 的 key值
+  	if (IsSelfCenter){return EBTNodeResult::Failed;}
+  	const auto CenterActor = Cast<AActor>(BlackBoard->GetValueAsObject(CenterActorKey.SelectedKeyName));
+  
+      // 但 AI到达随机位置，设置下个随机点的 位置
+  	if (!CenterActor){return EBTNodeResult::Failed;}
+  	Location = CenterActor->GetActorLocation();
+  	const bool IsFound = NavSys->GetRandomReachablePointInRadius(Location, Radius, NavLocation);
+  
+      // 设定好下个 随机位置，需要用 黑板组件 设置 新的位置 key值
+  	if (!IsFound){return EBTNodeResult::Failed;}
+  	BlackBoard->SetValueAsVector(AimLocationKey.SelectedKeyName, NavLocation.Location);
+  	return EBTNodeResult::Succeeded;
+  }
+  ```
+
+  
+
+
+
+### 33. BehaviorTree Service
+
+
+
+情景：
+
+- 利用前面`AIPerceptionComponent`，设置新的目标`Actor`
+- 以通过`AIPerceptionComponent`获得新目标，设置`黑板组件`为例
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "BehaviorTree/BTService.h"
+  #include "STUFindEnemyBTService.generated.h"
+  
+  struct FBlackboardKeySelector;
+  
+  UCLASS()
+  class B_01_TPS_API USTUFindEnemyBTService : public UBTService
+  {
+  	GENERATED_BODY()
+  
+  public:
+  	USTUFindEnemyBTService();
+  
+  protected:
+  	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+  
+  /* My Code */
+  	// Property
+  private:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI", meta=(AllowPrivateAccess=true))
+  	FBlackboardKeySelector EnemyActorKey;
+  };
+  ```
+
+  
+
+- 实现：
+
+  ```c++
+  #include "STUFindEnemyBTService.h"
+  #include "AIController.h"
+  #include "BehaviorTree/BlackboardComponent.h"
+  #include "B_01_TPS/Component/STUAIPerceptionComponent.h"
+  #include "B_01_TPS/Dev/STUUtils.h"
+  
+  USTUFindEnemyBTService::USTUFindEnemyBTService()
+  {
+  	NodeName = "Find Enemy";
+  }
+  
+  void USTUFindEnemyBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+  {
+  	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+  
+      // 获得 黑板 和 AIController
+  	const auto BlackBoard = OwnerComp.GetBlackboardComponent();
+  
+  	if (!BlackBoard){return;}
+  	const auto Controller = OwnerComp.GetAIOwner();
+  
+      // 获得 PerceptionComponent
+  	if (!Controller){return;}
+  	const auto PerceptionComponent = STUUtils::GetSTUPlayerComponent<USTUAIPerceptionComponent>(Controller);
+  
+      // 从 PerceptionComponent 得到新的 Actort 设置到 黑板 的 key值
+  	if (!PerceptionComponent){return;}
+  	BlackBoard->SetValueAsObject(EnemyActorKey.SelectedKeyName, PerceptionComponent->GetClosetEnemy());
+  }
+  ```
+
+  
+
+
+
+
+
+### 34. HUD生成Widget
+
+
+
+情景：
+
+- 设置自己的`HUD`生成指定`Widget`
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "GameFramework/HUD.h"
+  #include "STUGameHUD.generated.h"
+  
+  UCLASS()
+  class B_01_TPS_API ASTUGameHUD : public AHUD
+  {
+  	GENERATED_BODY()
+  
+  protected:
+  	virtual void BeginPlay() override;
+  	
+  /* My Code */
+  	// Function
+  public:
+  	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI", meta=(AllowPrivateAccess=true))
+  	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
+  };
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUGameHUD.h"
+  #include "Blueprint/UserWidget.h"
+  #include "Engine/Canvas.h"
+  
+  void ASTUGameHUD::BeginPlay()
+  {
+  	Super::BeginPlay();
+  
+  	const auto PlayerHUDWidget = CreateWidget<UUserWidget>(GetWorld(), PlayerHUDWidgetClass);
+  
+  	if (!PlayerHUDWidget){return;}
+  	PlayerHUDWidget->AddToViewport();
+  }
+  ```
+
+
+
+
+
+### 35. HUD绘制准星
+
+
+
+情景：
+
+- 直接通过`HUD`生成静态准星
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "GameFramework/HUD.h"
+  #include "STUGameHUD.generated.h"
+  
+  UCLASS()
+  class B_01_TPS_API ASTUGameHUD : public AHUD
+  {
+  	GENERATED_BODY()
+  
+  protected:
+  	virtual void DrawHUD() override;
+  public:
+  	UFUNCTION()
+  	void DrawCrossHair();
+  };
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUGameHUD.h"
+  #include "Blueprint/UserWidget.h"
+  #include "Engine/Canvas.h"
+  
+  void ASTUGameHUD::DrawHUD()
+  {
+  	Super::DrawHUD();
+  
+  	DrawCrossHair();
+  }
+  
+  void ASTUGameHUD::DrawCrossHair()
+  {
+  	const TInterval<float> Center(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+  	constexpr float HalfLineSize = 10.f;
+  	constexpr float LineThickness = 2.f;
+  	const FColor LineColor = FColor::Green;
+  
+  	DrawLine(
+  		Center.Min - HalfLineSize,
+  		Center.Max,
+  		Center.Min + HalfLineSize,
+  		Center.Max,
+  		LineColor,
+  		LineThickness);
+  	DrawLine(
+  		Center.Min,
+  		Center.Max - HalfLineSize,
+  		Center.Min,
+  		Center.Max + HalfLineSize,
+  		LineColor,
+  		LineThickness);
+  }
+  ```
+
+
+
+
+
+### 36. Widget创建蓝图可用函数
+
+
+
+情景：
+
+- `C++`创建的`Widget`
+- 创建`蓝图可调用`函数
+
+
+
+示例：
+
+- 定义：
+
+  ```c++
+  UCLASS()
+  class B_01_TPS_API USTUPlayerHUDWidget : public UUserWidget
+  {
+  	GENERATED_BODY()
+  
+  /* My Code */
+  	// Function
+  public:
+  	UFUNCTION(BlueprintCallable)
+  	float GetHealthPercent() const;
+  
+  	UFUNCTION(BlueprintCallable)
+  	bool IsPlayerAlive() const;
+  
+  	UFUNCTION(BlueprintCallable)
+  	bool IsPlayerSpectating() const;
+  };
+  ```
+
+
+
+- 实现：
+
+  ```c++
+  #include "STUPlayerHUDWidget.h"
+  #include "B_01_TPS/Dev/STUUtils.h"
+  #include "B_01_TPS/Component/STUHealthActorComponent.h"
+  #include "B_01_TPS/Component/STUWeaponActorComponent.h"
+  
+  float USTUPlayerHUDWidget::GetHealthPercent() const
+  {
+  	const auto HealthComp = STUUtils::GetSTUPlayerComponent<USTUHealthActorComponent>(GetOwningPlayerPawn());
+  	if (!HealthComp){return 0.f;}
+  	return HealthComp->GetHPPercent();
+  }
+  
+  bool USTUPlayerHUDWidget::IsPlayerSpectating() const
+  {
+  	const auto Controller = GetOwningPlayer();
+  	return Controller && Controller->GetStateName() == NAME_Spectating;
+  }
+  
+  bool USTUPlayerHUDWidget::IsPlayerAlive() const
+  {
+  	const auto HealthComp = STUUtils::GetSTUPlayerComponent<USTUHealthActorComponent>(GetOwningPlayerPawn());
+  	return HealthComp && !HealthComp->IsDead();
   }
   ```
 
