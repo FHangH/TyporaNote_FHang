@@ -579,17 +579,44 @@ static bool LineTraceSingleByProfile(
   void ACharacterBase::MoveForward(float Value)
   {
       // 这种方法有问题：人物应用摄像机旋转，摄像机应用控制器旋转时，鼠标完全朝上或朝下，将无法正常行走
-  	const FVector Direction = FRotationMatrix(GetController()->GetControlRotation()).GetScaledAxis(EAxis::X);
+  	//const FVector Direction = FRotationMatrix(GetController()->GetControlRotation()).GetScaledAxis(EAxis::X);
       
       // 这个方法简单，通用
       const FVector Direction = GetActorForwardVector();
   	AddMovementInput(Direction, Value);
+      
+      ###### 官方写法 ######
+  	if ((Controller != nullptr) && (Value != 0.0f))
+  	{
+  		// find out which way is forward
+  		const FRotator Rotation = Controller->GetControlRotation();
+  		const FRotator YawRotation(0, Rotation.Yaw, 0);
+  
+  		// get forward vector
+  		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+  		AddMovementInput(Direction, Value);
+  	}
   }
   
   void ACharacterBase::MoveRight(float Value)
   {
-  	const FVector Direction = FRotationMatrix(GetController()->GetControlRotation()).GetScaledAxis(EAxis::Y);
+  	// const FVector Direction = FRotationMatrix(GetController()->GetControlRotation()).GetScaledAxis(EAxis::Y);
+      
+      const FVector Direction = GetActorRightVector();
   	AddMovementInput(Direction, Value);
+      
+      ###### 官方写法 ######
+      if ( (Controller != nullptr) && (Value != 0.0f) )
+  	{
+  		// find out which way is right
+  		const FRotator Rotation = Controller->GetControlRotation();
+  		const FRotator YawRotation(0, Rotation.Yaw, 0);
+  	
+  		// get right vector 
+  		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+  		// add movement in that direction
+  		AddMovementInput(Direction, Value);
+  	}
   }
   ```
 
@@ -2534,7 +2561,7 @@ void ABlackHole_Actor::OnBlackHoleAction()
 - 不与`Actor`产生`BlockHit`
 - 拾取后不销毁，隐藏起来，一段时间重生，`TimerHandle`
 - 物品默认旋转，拾取后关闭旋转，重生后开启旋转，`TimerHandle`
-- 被拾取后，让拾取的`Actor`执行指定的`Function`，`Virtual Function`
+- 被拾取后，让拾取的`Actor`执行指定的`GivePickUpTo`，`Virtual Function`
 - 具体执行的功能，通过子类去实现
 
 
@@ -2588,12 +2615,6 @@ void ABlackHole_Actor::OnBlackHoleAction()
   
   	// Function
   public:
-  	UFUNCTION()
-  	void ConstructorProperty();
-  
-  	UFUNCTION()
-  	void ConstructorComponent();
-  
   	UFUNCTION()
   	void PickUpWasTaken();
   
@@ -3380,3 +3401,72 @@ void ABlackHole_Actor::OnBlackHoleAction()
   ```
 
   
+
+
+
+
+
+### 37. UPROPERTY()
+
+
+
+情景：
+
+> `private`：需要在蓝图中`可读可写`，任意处编辑
+>
+> > UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+
+
+
+> 以 `bool IsTrue;`为判断标准，为`false`时，编辑器处为`不可编辑`状态
+>
+> > UPROPERTY(EditAnywhere, meta=(EditCondition="IsTrue"))
+
+
+
+> `float HP;`为例，在编辑器中设置的值要符合一个固定的范围
+>
+> > UPROPERTY(EditAnywhere, meta=(ClampMin=0, ClampMax=100))
+
+
+
+
+
+### 38. check-checkf-checkNoEntry
+
+
+
+情景：
+
+- 需要在`BeginPlay()`检测组件是否有效
+
+  `check(GetMesh());`：如果`GetMesh()`无效，程序会中断
+
+  
+
+- 还需要通过条件判断是否有效，同时打印指定语句到日志
+
+- 以`float HP;`为例，默认`BeginPlay()`时，`HP`应该`大于0`
+
+  `checkf(HP > 0.f, TEXT("HP Shound Great 0"));`
+
+
+
+- 应用于不可到达的代码片段，当出现不应该出现的情况时，程序中断
+
+  ```c++
+  void Function(AActor* Actor)
+  {
+      if (Actor)
+      {
+          ....
+      }
+      else
+      {
+          checkNoEntry();
+      }
+  }
+  ```
+
+  
+
