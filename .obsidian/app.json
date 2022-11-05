@@ -1,0 +1,9 @@
+{
+  "spellcheckLanguages": [
+    "zh-CN",
+    "en-US",
+    "en-GB"
+  ],
+  "readableLineLength": false,
+  "strictLineBreaks": false
+}
