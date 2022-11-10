@@ -2,6 +2,10 @@
 
 
 
+[toc]
+
+
+
 ### 1. Flutter 安装
 
 1. [中国Flutter]: https://flutter.cn/
@@ -25,7 +29,7 @@
 7. 检查Flutter版本：
 
    ```powershell
-PS C:\Windows\System32> flutter --version
+   PS C:\Windows\System32> flutter --version
    Flutter 2.0.5 • channel stable • https://github.com/flutter/flutter.git
    Framework • revision adc687823a (5 days ago) • 2021-04-16 09:40:20 -0700
    Engine • revision b09f014e96

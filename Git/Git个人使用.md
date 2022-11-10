@@ -1,11 +1,3 @@
----
-title: Git个人使用
-tags: Git
-categories: Git
-top_img: 'https://cdn.jsdelivr.net/gh/FHangH/FHangBlogCDN/Post_Img/postImg_12.jpg'
-cover: 'https://cdn.jsdelivr.net/gh/FHangH/FHangBlogCDN/Post_Img/postImg_12.jpg'
----
-
 # Git个人使用
 
 
@@ -16,6 +8,10 @@ cover: 'https://cdn.jsdelivr.net/gh/FHangH/FHangBlogCDN/Post_Img/postImg_12.jpg'
 -----------------------------------------------------------------------------------------------------------------------
 // 2021-02-20：又添加了 clone 的方法，修改完善了之前的内容
 ```
+
+
+
+[toc]
 
 
 

@@ -1,8 +1,17 @@
-# 日志：
+# UE4初始设置及崩溃记录
+
+
+
 	1.第一次记录：2020.2.05 版本：4.24.2
 
+
+
+[toc]
+
+
+
 # UnrealEngine的初始设置	
-	
+
 
 ## 1.在Epic中下载UnrealEngine4之后
 
@@ -24,7 +33,7 @@
 	找到UE4的项目缓存目录
 	C:\Users\用户名\AppData\Local\UnrealEngine\Common\DerivedDataCache
 	删除DerivedDataCache
-	
+
 3.找到安装UE4的目录
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20200205151224151.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDUxOTY5Mg==,size_16,color_FFFFFF,t_70)
 4.在 UE_4.24/Engine/Config 中找到 BaseEngine.ini 文件，直接用记事本打开
@@ -35,7 +44,7 @@
 6.将 [InstalledDerivedDataBackendGraph] 下面的内容进行修改
 
 	1 Local=(Type=FileSystem, ReadOnly=false,Clean=false, Flush=false, PurgeTransient=true, DeleteUnused=true,UnusedFileAge=34, FoldersToClean=-1, Path="%ENGINEVERSIONAGNOSTICUSERDIR%DerivedDataCache")
-
+	
 	修改为：
 	1 Local=(Type=FileSystem, ReadOnly=false,Clean=false, Flush=false, PurgeTransient=true, DeleteUnused=true,UnusedFileAge=34, FoldersToClean=-1,Path="%GAMEDIR%DerivedDataCache")
 
@@ -61,10 +70,10 @@
 	
 	[/Script/Engine.Blueprint]
 	bRecompileOnLoad=False
-
+	
 	[/Script/Engine.LevelScriptBlueprint]
 	bRecompileOnLoad=False
-
+	
 	[/Script/Engine.AnimBlueprint]
 	bRecompileOnLoad=False
 
