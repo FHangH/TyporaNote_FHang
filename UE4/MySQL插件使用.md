@@ -6,6 +6,18 @@
 
 
 
+>Update To 2.0
+>
+>修复了一些bool返回结果错误的bug
+>
+>优化了代码的可读性
+>
+>更新了新的2.0方法 《SelectOnTableToMap》 取代 1.0方法《SelectOnTableData》
+>
+>具体用法可以看项目源码里的注释xin'x
+
+
+
 ### 1. 插件获取
 
 
@@ -227,21 +239,41 @@
   - `ResultRow`整行的数据
   - `RowValue`整行内字段名的数据
 
-  ```c++
-  /*
-   * ConnectionObject == MySQL Object
-   * @return bool == Select Data Is Succeed Or Failed
-  */	
-  UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
-  static bool SelectOnTableData(UFH_ConnectionObject *ConnectionObject, FString SqlQuery, 
-                                FQueryResultRows &ResultRows);
-  ```
-
-  
 
 
 
-##### 3.5.1 Select All Format SqlQuery
+##### 3.5.1 Version1.0
+
+
+
+```c++
+/*
+ * ConnectionObject == MySQL Object
+ * @return bool == Select Data Is Succeed Or Failed
+*/	
+UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+static bool SelectOnTableData(UFH_ConnectionObject *ConnectionObject, FString SqlQuery, FQueryResultRows &ResultRows);
+```
+
+
+
+##### 3.5.2 Version2.0
+
+
+
+```c++
+/*
+ * 2.0 Select All Results In TArray<TMap> ResArray
+ */
+UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+static bool SelectOnTableToMap(UFH_ConnectionObject* ConnectionObject, FString SqlQuery, FResArray& ResArray);
+```
+
+
+
+
+
+##### 3.5.3 Select All Format SqlQuery
 
 
 
@@ -260,7 +292,7 @@
 
 
 
-##### 3.5.2 Select Columns By Conditions
+##### 3.5.4 Select Columns By Conditions
 
 
 
@@ -279,7 +311,7 @@
 
 
 
-##### 3.5.3 Select Get RowValues By Index
+##### 3.5.5 Select Get RowValues By Index
 
 
 

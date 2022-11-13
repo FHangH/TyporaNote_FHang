@@ -257,6 +257,10 @@ ConnectorLibs
 
 
 
+##### 6.2.1 Version1.0
+
+
+
 - `BPFuncLib_FHSQL.h`
 
   ```c++
@@ -564,6 +568,391 @@ ConnectorLibs
   ```
 
 
+
+##### 6.2.2 Version2.0
+
+
+
+- `BPFuncLib_FHSQL.h`
+
+  ```c++
+  #pragma once
+  
+  #include "CoreMinimal.h"
+  #include "Kismet/BlueprintFunctionLibrary.h"
+  #include "FH_ConnectionObject.h"
+  #include "BPFuncLib_FHSQL.generated.h"
+  
+  // 1.0
+  USTRUCT(BlueprintType)
+  struct FQueryResultRow
+  {
+  	GENERATED_BODY()
+  
+  	UPROPERTY(BlueprintReadWrite, Category="MySQL|Result Row Value")
+  	TArray<FString> RowValue;
+  };
+  
+  USTRUCT(BlueprintType)
+  struct FQueryResultRows
+  {
+  	GENERATED_BODY()
+  
+  	UPROPERTY(BlueprintReadWrite, Category="MySQL|Result Rows Value")
+  	TArray<FQueryResultRow> RowsValue;
+  };
+  
+  // 2.0
+  USTRUCT(BlueprintType)
+  struct FRowMap
+  {
+  	GENERATED_BODY()
+  
+  	UPROPERTY(BlueprintReadWrite, Category="MySQL|Utils")
+  	TMap<FString, FString> RowMap;
+  };
+  
+  USTRUCT(BlueprintType)
+  struct FResArray
+  {
+  	GENERATED_BODY()
+  
+  	UPROPERTY(BlueprintReadWrite, Category="MySQL|Utils")
+  	TArray<FRowMap> ResArray;
+  };
+  
+  UCLASS(BlueprintType)
+  class FH_MYSQL_API UBPFuncLib_FHSQL : public UBlueprintFunctionLibrary
+  {
+  	GENERATED_BODY()
+  
+  public:
+  	/*
+  	 * 2.0 Select All Results In TArray<TMap> ResArray
+  	 */
+  	UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+  	static bool SelectOnTableToMap(UFH_ConnectionObject* ConnectionObject, FString SqlQuery, FResArray& ResArray);
+  	
+  	/*
+  	 * Connection == MySQL Object
+  	 * @return *UFH_ConnectionObject == MySQL Connector
+  	 */
+  	UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+  	static UFH_ConnectionObject *ConnectToMySQL(FString Host, FString UserName, FString PassWord, FString DBName,
+  												int32 Port, FString &ConnectMessage);
+  
+  	/*
+  	 * ConnectionObject == MySQL Object
+  	 * @return bool == ConnectionState
+  	 */
+  	UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+  	static bool GetConnectionState(UFH_ConnectionObject *ConnectionObject);
+  
+  	/*
+  	 * ConnectionObject == MySQL Object
+  	 * @return bool == ConnectionState
+  	 */
+  	UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+  	static bool CloseConnection(UFH_ConnectionObject *ConnectionObject);
+  
+  	/*
+  	 * ConnectionObject == MySQL Object
+  	 * @return bool == Insert, Update, Delete Data Is Succeed Or Failed
+  	 */
+  	UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+  	static bool ActionOnTableData(UFH_ConnectionObject *ConnectionObject, FString SqlQuery);
+  	
+  	/*
+  	 * TableName = DataBase TableName
+  	 * InsertValues = MySQL Insert Values to Table
+  	 * @return FString = MySQL Insert Query -> Insert
+  	 */
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FString InsertFormatSqlQuery(FString TableName, FString InsertValues);
+  
+  	/*
+  	 * TableName = DataBase TableName
+  	 * RowName = Need Update Row
+  	 * @return FString = MySQL Update Query -> Update
+  	 */	
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FString UpdateAllFormatSqlQuery(FString TableName, FString RowName, FString UpdateValue);
+  
+  	/*
+  	 * TableName = DataBase TableName
+  	 * RowName = Need Update Row
+  	 * WhereName = Update Where
+  	 * WhereSymbol = Operator Or Symbol
+  	 * WhereValue = Condition Name
+  	 * UpdateValue = Need Update Date Value
+  	 * @return FString = MySQL Update Query -> Update
+  	 */	
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FString UpdateByWhereFormatSqlQuery(FString TableName, FString RowName, FString WhereName, FString WhereSymbol, FString WhereValue, FString UpdateValue);
+  
+  	/*
+  	 * TableName = DataBase TableName
+  	 * @return FString = MySQL Delete Query -> Delete
+  	 */
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FString DeleteAllFormatSqlQuery(FString TableName);
+  
+  	/*
+  	 * TableName = DataBase TableName
+  	 * WhereName = Update Where
+  	 * WhereSymbol = Operator Or Symbol
+  	 * WhereValue = Condition Name
+  	 * @return FString = MySQL Delete Query -> Delete
+  	 */
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FString DeleteByWhereFormatSqlQuery(FString TableName, FString WhereName, FString WhereSymbol, FString WhereValue);
+  
+  	/*
+  	 * ConnectionObject == MySQL Object
+  	 * @return bool == Select Data Is Succeed Or Failed
+  	 */	
+  	UFUNCTION(BlueprintCallable, Category="MySQL|Utils")
+  	static bool SelectOnTableData(UFH_ConnectionObject *ConnectionObject, FString SqlQuery, FQueryResultRows &ResultRows);
+  	
+  	/*
+  	 * TableName = DataBase TableName
+  	 * @return FString = MySQL Select Query -> Select
+  	 */
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FString SelectAllFormatSqlQuery(FString TableName);
+  
+  	/*
+  	 * TableName = DataBase TableName
+  	 * @return FString = MySQL Select Query -> Select
+  	 */	
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FString SelectByColumnsFormatSqlQuery(FString TableName, FString Columns);
+  
+  	/*
+  	 * TableName = DataBase TableName
+  	 * @return TArray<FString> = Get All Rows -> In All Columns Values
+  	 */		
+  	UFUNCTION(BlueprintPure, Category="MySQL|Utils")
+  	static FQueryResultRow SelectGetRowByIndex(const FQueryResultRows &ResultRows, int32 RowIndex);
+  };
+  ```
+
+
+
+- `BPFuncLib_FHSQL.cpp`
+
+  ```c++
+  #include "BPFuncLib_FHSQL.h"
+  #include "mysql.h"
+  #include <string>
+  
+  UFH_ConnectionObject* UBPFuncLib_FHSQL::ConnectToMySQL(FString Host, FString UserName, FString PassWord, FString DBName,
+                                                         int32 Port, FString &ConnectMessage)
+  {
+  	const std::string m_Host(TCHAR_TO_UTF8(*Host));
+  	const std::string m_UserName(TCHAR_TO_UTF8(*UserName));
+  	const std::string m_PassWord(TCHAR_TO_UTF8(*PassWord));
+  	const std::string m_DBName(TCHAR_TO_UTF8(*DBName));
+  	const uint32 m_Port = Port; 
+  	
+  	UFH_ConnectionObject *ConnectionObject = NewObject<UFH_ConnectionObject>();
+  	ConnectionObject->Fh_ConnMysql = mysql_init(nullptr);
+  
+  	constexpr bool reconnect = 0;
+  	mysql_options(ConnectionObject->Fh_ConnMysql, MYSQL_OPT_RECONNECT, &reconnect);
+  	
+  	// 判断连接是否成功，失败返回 NULL
+  	const auto IsConnected = mysql_real_connect(
+  				ConnectionObject->Fh_ConnMysql,
+  				m_Host.c_str(),
+  				m_UserName.c_str(),
+  				m_PassWord.c_str(),
+  				m_DBName.c_str(),
+  				m_Port,
+  				nullptr,
+  				0);
+  	if (IsConnected == nullptr)
+  	{
+  		ConnectMessage = TEXT("Connect Failed");
+  		ConnectionObject = nullptr;
+  	}
+  	else
+  	{
+  		ConnectMessage = TEXT("Connect Succeed");
+  	}
+  	
+  	return ConnectionObject;
+  }
+  
+  bool UBPFuncLib_FHSQL::GetConnectionState(UFH_ConnectionObject* ConnectionObject)
+  {
+  	// 判断当前 MySQL 连接状态
+  	if (ConnectionObject && ConnectionObject->Fh_ConnMysql != nullptr)
+  	{
+  		return true;
+  	}
+  	return false;
+  }
+  
+  bool UBPFuncLib_FHSQL::CloseConnection(UFH_ConnectionObject* ConnectionObject)
+  {
+  	if (GetConnectionState(ConnectionObject))
+  	{
+  		mysql_close(ConnectionObject->Fh_ConnMysql);
+  		ConnectionObject->Fh_ConnMysql = nullptr;
+  		ConnectionObject = nullptr;
+  		return true;
+  	}
+  	return true;
+  }
+  
+  bool UBPFuncLib_FHSQL::ActionOnTableData(UFH_ConnectionObject* ConnectionObject, FString SqlQuery)
+  {
+  	const std::string m_SqlQuery(TCHAR_TO_UTF8(*SqlQuery));
+  	
+  	if (!ConnectionObject || !ConnectionObject->Fh_ConnMysql){return false;}
+  	mysql_ping(ConnectionObject->Fh_ConnMysql);
+  	
+  	if (mysql_query(ConnectionObject->Fh_ConnMysql, m_SqlQuery.c_str()) == 0)
+  	{
+  		return true;
+  	}
+  	return false;
+  }
+  
+  FString UBPFuncLib_FHSQL::InsertFormatSqlQuery(FString TableName, FString InsertValues)
+  {
+  	// INSERT INTO TableName VALUES(InsertValues);
+  	FString SqlQuery = "INSERT INTO " + TableName + " VALUES(" + InsertValues + ");";
+  	return SqlQuery;
+  }
+  
+  FString UBPFuncLib_FHSQL::UpdateAllFormatSqlQuery(FString TableName, FString UpdateRowName, FString UpdateValue)
+  {	// UPDATE TableName SET RowName=UpdateValue;
+  	FString SqlQuery = "UPDATE " + TableName + " SET " + UpdateRowName + "=" + UpdateValue + ";";
+  	return SqlQuery;
+  }
+  
+  FString UBPFuncLib_FHSQL::UpdateByWhereFormatSqlQuery(FString TableName, FString UpdateRowName, FString WhereName, FString WhereSymbol, FString WhereValue, FString UpdateValue)
+  {
+  	// UPDATE TableName SET UpdateRowName=UpdateValue WHERE WhereName=WhereValue;
+  	FString SqlQuery = "UPDATE " + TableName + " SET " + UpdateRowName + "=" + UpdateValue + " WHERE " + WhereName + WhereSymbol + WhereValue + ";";
+  	return SqlQuery;
+  }
+  
+  FString UBPFuncLib_FHSQL::DeleteAllFormatSqlQuery(FString TableName)
+  {
+  	// DELETE FROM TableName;
+  	FString SqlQuery = "DELETE FROM " + TableName + ";";
+  	return SqlQuery;
+  }
+  
+  FString UBPFuncLib_FHSQL::DeleteByWhereFormatSqlQuery(FString TableName, FString WhereName, FString WhereSymbol, FString WhereValue)
+  {
+  	// DELETE FROM TableName WHERE WhereName=‘WhereValue’;
+  	FString SqlQuery = "DELETE FROM " + TableName + " WHERE " + WhereName + WhereSymbol + "'" + WhereValue + "';";
+  	return SqlQuery;
+  }
+  
+  /*
+   * version = 1.0
+   * 不好用，用 version = 2.0
+   */
+  bool UBPFuncLib_FHSQL::SelectOnTableData(UFH_ConnectionObject* ConnectionObject, FString SqlQuery, FQueryResultRows &ResultRows)
+  {
+  	MYSQL_RES *m_Res;
+  	MYSQL_ROW m_Column;
+  	TArray<FString> m_ColumnNames;
+  	FQueryResultRows m_Rows;
+  	const std::string m_SqlQuery(TCHAR_TO_UTF8(*SqlQuery));
+  
+  	if (!ConnectionObject){return false;}
+  	if (!ConnectionObject->Fh_ConnMysql){return false;}
+  	mysql_ping(ConnectionObject->Fh_ConnMysql);
+  
+  	if (!mysql_query(ConnectionObject->Fh_ConnMysql, m_SqlQuery.c_str()))
+  	{
+  		ResultRows = {};
+  		m_Res = mysql_store_result(ConnectionObject->Fh_ConnMysql);
+  		const int m_Columns = mysql_num_fields(m_Res);
+  
+  		while ((m_Column = mysql_fetch_row(m_Res)) != nullptr)
+  		{
+  			FQueryResultRow m_Row;
+  			for (int i = 0; i < m_Columns; ++i)
+  			{
+  				m_Row.RowValue.Add(UTF8_TO_TCHAR(m_Column[i]));
+  			}
+  			ResultRows.RowsValue.Add(m_Row);
+  		}
+  		
+  		mysql_free_result(m_Res);
+  		return true;
+  	}
+  	return false;
+  }
+  
+  /*
+   * version = 2.0
+   * 蓝图里可以得到数据库查询的所有值，存在 TArray<>里
+   * TArray<>可以但数组用，TArray[0] == 数据表的第一行 == TMap<Key, Value>
+   * TMap<Key, Value> => Key == 数据表列的名称，Value == 对应列的值
+   * 用法：
+   *	1. 先中断 FResArray(Struct) 得到 FRowMap(Struct)[]
+   *	2. 遍历 FRowMap(Struct)[] 得到 FRowMap(Struct)
+   *	3. 中断 FRowMap(Struct) 得到 RowMap(Map)
+   *	4. 获得 RowMap的 Keys, 遍历 keys, 通过key -> find Map 得到 value
+   */
+  bool UBPFuncLib_FHSQL::SelectOnTableToMap(UFH_ConnectionObject* ConnectionObject, FString SqlQuery, FResArray& ResArray)
+  {
+  	if (!ConnectionObject || !ConnectionObject->Fh_ConnMysql){ResArray = {}; return false;}
+  	mysql_ping(ConnectionObject->Fh_ConnMysql);
+  
+  	const std::string m_SqlQuery(TCHAR_TO_UTF8(*SqlQuery));
+  	if (!mysql_query(ConnectionObject->Fh_ConnMysql, m_SqlQuery.c_str()))
+  	{
+  		MYSQL_RES* Res = mysql_store_result(ConnectionObject->Fh_ConnMysql);
+  		const int32 num_rows = mysql_num_rows(Res);
+  		const int32 num_fields = mysql_num_fields(Res);
+  		MYSQL_FIELD* field = mysql_fetch_field(Res);
+  		MYSQL_ROW row = mysql_fetch_row(Res);
+  
+  		ResArray.ResArray.Init(FRowMap{}, num_rows);
+  		for (int i = 0; i < num_rows; ++i)
+  		{
+  			for (int j = 0; j < num_fields; ++j)
+  			{
+  				ResArray.ResArray[i].RowMap.Add(field[j].name, row[j]);
+  			}
+  		}
+  		mysql_free_result(Res);
+  		return true;
+  	}
+  	return false;
+  }
+  
+  FString UBPFuncLib_FHSQL::SelectAllFormatSqlQuery(FString TableName)
+  {
+  	// SELECT * FROM TableName;
+  	FString SqlQuery = "SELECT * FROM " + TableName + ";";
+  	return SqlQuery;
+  }
+  
+  FString UBPFuncLib_FHSQL::SelectByColumnsFormatSqlQuery(FString TableName, FString Columns)
+  {
+  	// SELECT Columns1, Columns2, Country FROM TableName;
+  	FString SqlQuery = "SELECT " + Columns + " FROM " + TableName + ";";
+  	return SqlQuery;
+  }
+  
+  FQueryResultRow UBPFuncLib_FHSQL::SelectGetRowByIndex(const FQueryResultRows &ResultRows, int32 RowIndex)
+  {
+  	const FQueryResultRow m_Row = ResultRows.RowsValue[RowIndex];
+  	return m_Row;
+  }
+  ```
+
+  
 
 
 
