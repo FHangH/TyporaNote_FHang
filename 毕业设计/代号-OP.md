@@ -17,7 +17,9 @@
 
 **2022-11-12 | 09:30**：项目开始
 
-****：
+**2022-11-17 | 9:00**：开始设计部分数据库表
+
+**2022-11-17 | 10：30**：大概完善部分数据库表
 
 :::
 
@@ -185,9 +187,158 @@ RiderForUnreal：
 
 
 
-### 3. 功能分析
+### 3. 数据表设计
 
 
 
-#### 3.1 用户登录注册
+>- `UserInfo`
+>- `PlayerInfo`
+>- `WeaponInfo`
+>- `PlayerChat`
+>- `PropsInfo`
+>- `DelegateInfo`
+>- `BoxInfo`
+>- `MaterialInfo`
+>
+
+
+
+#### 3.1 UserInfo
+
+
+
+**UserInfo结构**
+
+| 字段名       | 类型        | 自增 | 不为空 | PK / FK |
+| ------------ | ----------- | ---- | ------ | ------- |
+| UserID       | int         | Y    | Y      | PK      |
+| UserName     | varchar(30) |      | Y      |         |
+| UserEmail    | varchar(50) |      | Y      |         |
+| UserPassword | varchar(20) |      | Y      |         |
+
+
+
+**UserInfo表**
+
+| UserID | UserName | UserEmail        | UserPassword |
+| ------ | -------- | ---------------- | ------------ |
+| 1000   | fang     | 752972182@qq.com | 752972182    |
+| 1001   | qq       | 123456789@qq.com | 123456789    |
+
+
+
+**UserInfo.sql**
+
+```sql
+create table UserInfo(
+	UserID int not null auto_increment primary key,
+    UserName varchar(30) not null,
+    UserEmail varchar(50) not null,
+    UserPassWord varchar(20) not null
+);
+```
+
+
+
+
+
+#### 3.2 PlayerInfo
+
+
+
+**PlayerInfo**
+
+| 字段名               | 类型        | 自增 | 不为空 | PK / FK |
+| -------------------- | ----------- | ---- | ------ | ------- |
+| PlayerMaxHealth      | varchar(20) |      | Y      |         |
+| PlayerCurHealth      | varchar(20) |      | Y      |         |
+| PlayerGrade          | varchar(10) |      | Y      |         |
+| PlayerDamage         | varchar(20) |      | Y      |         |
+| PlayerCritRate       | varchar(10) |      | Y      |         |
+| PlayerCritMultiplier | varchar(10) |      | Y      |         |
+| PlayerDefense        | varchar(20) |      | Y      |         |
+| UserID               | int         |      |        | FK      |
+
+
+
+**PlayerInfo表**
+
+| PlayerMaxHealth | PlayerCurHealth | PlayerGrade | PlayerDamage | PlayerCritRate | PlayerCritMultiplier | PlayerDefense | UserID |
+| --------------- | --------------- | ----------- | ------------ | -------------- | -------------------- | ------------- | ------ |
+| PlayerGrade*100 | 100             | 1           | PlayerGrade  | 9+PlayerGrade  | 1.0+(PlayerGrade/10) | 9+PlayerGrade | 1000   |
+| PlayerGrade*100 | 200             | 2           | PlayerGrade  | 9+PlayerGrade  | 1.0+(PlayerGrade/10) | 9+PlayerGrade | 1001   |
+
+
+
+**PlayerInfo.sql**
+
+```sql
+create table PlayerInfo(
+	PlayerMaxHealth varchar(20) not null,
+    PlayerCurHealth varchar(20) not null,
+    PlayerGrade varchar(10) not null,
+    PlayerDamage varchar(20) not null,
+    PlayerCritRate varchar(10) not null,
+    PlayerCritMultiplier varchar(10) not null,
+    PlayerDefense varchar(20) not null,
+    UserID int,
+    foreign key(UserID) references UserInfo(UserID)
+);
+```
+
+
+
+#### 3.3 WeaponInfo
+
+
+
+**WeaponInfo**
+
+| 字段名               | 类型         | 自增 | 不为空 | PK / FK |
+| -------------------- | ------------ | ---- | ------ | ------- |
+| WeaponName           | varchar(10)  |      | Y      |         |
+| WeaponQuality        | enum         |      | Y      |         |
+| WeaponDescribe       | varchar(100) |      | Y      |         |
+| WeaponDamage         | varchar(20)  |      | Y      |         |
+| WeaponCritRate       | varchar(10)  |      | Y      |         |
+| WeaponCritMultiplier | varchar(10)  |      | Y      |         |
+| WeaponType           | enum         |      | Y      |         |
+| UserID               | int          |      |        | FK      |
+
+
+
+**WeaponInfo表**
+
+| WeaponName | WeaponQuality | WeaponDescribe | WeaponDamage | WeaponCritRate | WeaponCritMultiplier | WeaponType | UserID |
+| ---------- | ------------- | -------------- | ------------ | -------------- | -------------------- | ---------- | ------ |
+| sword      | A             | a sword        | 30           | 10             | 0.5                  | Sword      | 1000   |
+| gun        | B             | a gun          | 10           | 3.5            | 0.2                  | Gun        | 1001   |
+
+
+
+**WeaponInfo.sql**
+
+```sql
+create table WeaponInfo(
+	WeaponName varchar(10) not null,
+    WeaponQuality enum('S','A','B','C') not null,
+    WeaponDescribe varchar(100) not null,
+    WeaponDamage varchar(20) not null,
+    WeaponCritRate varchar(10) not null,
+    WeaponCritMultiplier varchar(10) not null,
+    WeaponType enum('Sword','Spear','Gun','Bow','Epee','Gloves','Sickle') not null,
+    UserID int,
+    foreign key(UserID) references UserInfo(UserID)
+);
+```
+
+
+
+
+
+### 4. 功能分析
+
+
+
+#### 4.1 用户登录注册
 
