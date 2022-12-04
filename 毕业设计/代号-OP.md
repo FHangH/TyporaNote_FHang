@@ -13,19 +13,27 @@
 
 
 
+[toc]
+
+
+
+### 0. 项目日志
+
 :::tip 项目日志
 
 **2022-11-12 | 09:30**：项目开始
 
 **2022-11-17 | 9:00**：开始设计部分数据库表
 
-**2022-11-17 | 10：30**：大概完善部分数据库表
+**2022-11-18 | 10:30**：大概完善部分数据库表
+
+**2022-11-26 | 10:30**：基本完成登录和注册界面的逻辑
+
+**2022-11-26 | 16:00**：借本搭建好游戏主要逻辑架构
+
+**2022-11-26 | 16:30**：开始设计项目结构和记录项目API
 
 :::
-
-
-
-[toc]
 
 
 
@@ -342,3 +350,119 @@ create table WeaponInfo(
 
 #### 4.1 用户登录注册
 
+
+
+##### 4.1.2 用户登录
+
+
+
+:::tip 功能设计
+
+- 在关卡**Map_Start**中设置**GameModeBase_Start**
+- 项目全局设置为**GameInstanceRPG**
+- **GameInstanceRPG**中创建并保存**Fh_UI_Start**，**Fh_MySQlConnector**
+- **PlayerController_FH**调用**GameInstanceRPG**中的**Fh_UI_Start**和**Fh_MySQlConnector**
+- 通过**PlayerController_FH**本地输入账号和密码
+- 调用**GameInstanceRPG**中的**Fh_MySQlConnector**获取登录信息
+- 调用**PlayerController_FH**调用**FH_CheckPutLoginInfo**，将登录信息提交到数据库，得到用户密码，判定是否可以登录
+
+:::
+
+
+
+##### 4.1.3 用户注册
+
+
+
+:::tip 功能设计
+
+- 大部分功能同**用户登录**一致
+- 调用**PlayerController_FH**调用**FH_CheckPutRegInfo**，将注册信息提交到数据库，判断是否成功
+- 成功则主界面切换到**用户登录**界面
+
+:::
+
+
+
+
+
+### 5. 项目结构-API
+
+
+
+#### 5.1 项目结构
+
+
+
+>MultiPlayerRPG
+>
+>>Plugins
+>>
+>>Source
+
+
+
+##### 5.1.1 插件源码
+
+
+
+**Plugins**
+
+- **Source**
+  - **FH_MySQL**
+    - **Private**
+      - BPFuncLib_FHSQL.cpp
+      - FH_ConnectionObject.cpp
+      - FH_MySQL.cpp
+    - **Public**
+      - BPFuncLib_FHSQL.h
+      - FH_ConnectionObject.h
+      - FH_MySQL.h
+
+
+
+##### 5.1.2 项目源码
+
+
+
+**Source**
+
+- **MultiPlayerRPG**
+  - **Data**
+    - FFhMySQLConnectorData.cpp
+    - FFhMySQLConnectorData.h
+  - **GamePlay**
+    - **Character**
+      - Character_FH.cpp
+      - Character_FH.h
+    - **GameInstance**
+      - GameInstanceRPG.cpp
+      - GameInstanceRPG.h
+    - **GameMode**
+      - GameMode_MainLevel.cpp
+      - GameMode_MainLevel.h
+      - GameModeBase_Start.cpp
+      - GameModeBase_Start.h
+    - **GameState**
+      - GameState_FH.cpp
+      - GameState_FH.h
+    - **PlayerController**
+      - PlayerController_FH.cpp
+      - PlayerController_FH.h
+      - PlayerController_Start.cpp
+      - PlayerController_Start.h
+    - **PlayerState**
+      - PlayerState_FH.cpp
+      - PlayerState_FH.h
+    - **UI**
+      - UI_MainLevel.cpp
+      - UI_MainLevel.h
+      - UI_Start.cpp
+      - UI_Start.h
+  - **Utils**
+    - MySqlUtil.cpp
+    - MySqlUtil.h
+
+
+
+#### 5.2 项目API
