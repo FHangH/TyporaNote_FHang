@@ -258,23 +258,31 @@ create table UserInfo(
 
 | 字段名               | 类型        | 自增 | 不为空 | PK / FK |
 | -------------------- | ----------- | ---- | ------ | ------- |
-| PlayerMaxHealth      | varchar(20) |      | Y      |         |
-| PlayerCurHealth      | varchar(20) |      | Y      |         |
-| PlayerGrade          | varchar(10) |      | Y      |         |
-| PlayerDamage         | varchar(20) |      | Y      |         |
-| PlayerCritRate       | varchar(10) |      | Y      |         |
-| PlayerCritMultiplier | varchar(10) |      | Y      |         |
-| PlayerDefense        | varchar(20) |      | Y      |         |
-| UserID               | int         |      |        | FK      |
+| UserID               | int         |      | Y      | PK      |
+| PlayerGrade          | int         |      | Y      |         |
+| PlayerMaxHealth      | float       |      | Y      |         |
+| PlayerCurHealth      | float       |      | Y      |         |
+| PlayerDamage         | float       |      | Y      |         |
+| PlayerCritRate       | float       |      | Y      |         |
+| PlayerCritMultiplier | float       |      | Y      |         |
+| PlayerDefense        | float       |      | Y      |         |
+| PlayerLocation       | varchar(30) |      | Y      |         |
+| PlayerColor          | enum        |      | Y      |         |
+| PlayerCurExp         | float       |      | Y      |         |
+| PlayerNeedExp        | float       |      | Y      |         |
+| PlayerCurWeaponSlot  | int         |      | Y      |         |
+| PlayerWeaponSlotID1  | int         |      | Y      |         |
+| PlayerWeaponSlotID2  | int         |      | Y      |         |
+| PlayerWeaponSlotID3  | int         |      | Y      |         |
 
 
 
 **PlayerInfo表**
 
-| PlayerMaxHealth | PlayerCurHealth | PlayerGrade | PlayerDamage | PlayerCritRate | PlayerCritMultiplier | PlayerDefense | UserID |
-| --------------- | --------------- | ----------- | ------------ | -------------- | -------------------- | ------------- | ------ |
-| PlayerGrade*100 | 100             | 1           | PlayerGrade  | 9+PlayerGrade  | 1.0+(PlayerGrade/10) | 9+PlayerGrade | 1000   |
-| PlayerGrade*100 | 200             | 2           | PlayerGrade  | 9+PlayerGrade  | 1.0+(PlayerGrade/10) | 9+PlayerGrade | 1001   |
+| UserID | PlayerGrade | PlayerMaxHealth | PlayerCurHealth | PlayerDamage | PlayerCritRate        | PlayerCritMultiplier   | PlayerDefense   | PlayerLocation  | PlayerColor | PlayerCurExp | PlayerNeedExp   | PlayerCurWeaponSlot | PlayerWeaponSlotID1 | PlayerWeaponSlotID2 | PlayerWeaponSlotID3 |
+| ------ | ----------- | --------------- | --------------- | ------------ | --------------------- | ---------------------- | --------------- | --------------- | ----------- | ------------ | --------------- | ------------------- | ------------------- | ------------------- | ------------------- |
+| 1000   | 1           | PlayerGrade*100 | 100.0           | PlayerGrade  | 0.09+PlayerGrade*0.01 | 1.0+(PlayerGrade/10.0) | 9.0+PlayerGrade | (0.0, 0.0, 0.0) | WHITE       | 0.0          | PlayerGrade*3.0 | 1                   | 0                   | 1                   | 2                   |
+| 1001   | 2           | PlayerGrade*100 | 200.0           | PlayerGrade  | 0.09+PlayerGrade*0.01 | 1.0+(PlayerGrade/10.0) | 9.0+PlayerGrade | (0.0, 0.0, 0.0) | BLUE        | 0.0          | PlayerGrade*3.0 | 2                   | 3                   | 4                   | 5                   |
 
 
 
@@ -282,15 +290,22 @@ create table UserInfo(
 
 ```sql
 create table PlayerInfo(
-	PlayerMaxHealth varchar(20) not null,
-    PlayerCurHealth varchar(20) not null,
-    PlayerGrade varchar(10) not null,
-    PlayerDamage varchar(20) not null,
-    PlayerCritRate varchar(10) not null,
-    PlayerCritMultiplier varchar(10) not null,
-    PlayerDefense varchar(20) not null,
-    UserID int,
-    foreign key(UserID) references UserInfo(UserID)
+    UserID int not null primary key,
+    PlayerGrade int not null,
+	PlayerMaxHealth float not null,
+    PlayerCurHealth float not null,
+    PlayerDamage float not null,
+    PlayerCritRate float not null,
+    PlayerCritMultiplier float not null,
+    PlayerDefense float not null,
+    PlayerLocation varchar(30) not null,
+    PlayerColor enum('WHITE', 'BLUE', 'RED', 'YELLOW', 'GREEN', 'BLACK', 'PINK', 'GOLD', 'SILVER') not null,
+    PlayerCurExp float not null, 
+    PlayerNeedExp float not null,
+    PlayerCurWeaponSlot int not null,
+    PlayerWeaponSlotID1 int not null,
+    PlayerWeaponSlotID2 int not null,
+    PlayerWeaponSlotID3 int not null
 );
 ```
 
@@ -302,25 +317,25 @@ create table PlayerInfo(
 
 **WeaponInfo**
 
-| 字段名               | 类型         | 自增 | 不为空 | PK / FK |
-| -------------------- | ------------ | ---- | ------ | ------- |
-| WeaponName           | varchar(10)  |      | Y      |         |
-| WeaponQuality        | enum         |      | Y      |         |
-| WeaponDescribe       | varchar(100) |      | Y      |         |
-| WeaponDamage         | varchar(20)  |      | Y      |         |
-| WeaponCritRate       | varchar(10)  |      | Y      |         |
-| WeaponCritMultiplier | varchar(10)  |      | Y      |         |
-| WeaponType           | enum         |      | Y      |         |
-| UserID               | int          |      |        | FK      |
+| 字段名               | 类型        | 自增 | 不为空 | PK / FK |
+| -------------------- | ----------- | ---- | ------ | ------- |
+| WeaponID             | int         | Y    | Y      | PK      |
+| UserID               | int         |      | Y      |         |
+| WeaponName           | varchar(10) |      | Y      |         |
+| WeaponQuality        | enum        |      | Y      |         |
+| WeaponDamage         | float       |      | Y      |         |
+| WeaponCritRate       | float       |      | Y      |         |
+| WeaponCritMultiplier | float       |      | Y      |         |
+| WeaponType           | enum        |      | Y      |         |
 
 
 
 **WeaponInfo表**
 
-| WeaponName | WeaponQuality | WeaponDescribe | WeaponDamage | WeaponCritRate | WeaponCritMultiplier | WeaponType | UserID |
-| ---------- | ------------- | -------------- | ------------ | -------------- | -------------------- | ---------- | ------ |
-| sword      | A             | a sword        | 30           | 10             | 0.5                  | Sword      | 1000   |
-| gun        | B             | a gun          | 10           | 3.5            | 0.2                  | Gun        | 1001   |
+| WeaponID | UserID | WeaponName | WeaponQuality | WeaponDamage | WeaponCritRate | WeaponCritMultiplier | WeaponType |
+| -------- | ------ | ---------- | ------------- | ------------ | -------------- | -------------------- | ---------- |
+| 0        | 1000   | sword      | A             | 30.0         | 10.0           | 0.5                  | SWORD      |
+| 1        | 1001   | gun        | B             | 10.0         | 3.5            | 0.2                  | GUN        |
 
 
 
@@ -328,15 +343,14 @@ create table PlayerInfo(
 
 ```sql
 create table WeaponInfo(
+    WeaponID int not null primary key,
+    UserID int not null,
 	WeaponName varchar(10) not null,
     WeaponQuality enum('S','A','B','C') not null,
-    WeaponDescribe varchar(100) not null,
-    WeaponDamage varchar(20) not null,
-    WeaponCritRate varchar(10) not null,
-    WeaponCritMultiplier varchar(10) not null,
-    WeaponType enum('Sword','Spear','Gun','Bow','Epee','Gloves','Sickle') not null,
-    UserID int,
-    foreign key(UserID) references UserInfo(UserID)
+    WeaponDamage float not null,
+    WeaponCritRate float not null,
+    WeaponCritMultiplier float not null,
+    WeaponType enum('SWORD','SPEAR','GUN','BOW','EPEE','GLOVES','SICKLE') not null
 );
 ```
 

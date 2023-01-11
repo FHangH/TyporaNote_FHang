@@ -1,4 +1,4 @@
-# UE4发布LinuxServer
+# UE4/UE5 发布LinuxServer
 
 
 
@@ -12,6 +12,16 @@
 2. 需要将Server发到云端Linux系统主机
 3. 需要关闭SSH，服务一直启用
 4. 需要使用UE4
+
+:::
+
+
+
+:::danger UE5.1补充内容
+
+- 准备UE5.1 源码
+- 准备VS2022
+- 准备Linux交叉编译器-v20版本
 
 :::
 
@@ -41,6 +51,18 @@
 
 1. 微软只在**Visual Stuido**主页提供最新版本下载，需要单独去下载 [Visual Studio 2019](https://learn.microsoft.com/zh-cn/visualstudio/releases/2019/release-notes)
 2. 下载社区版的就可以了
+
+
+
+:::danger VS2022
+
+**UE5.1**版本及以后的新版本源码要以**VS2022**来编译，如果使用**VS2019**
+
+当你运行**GenerateProjectFiles.bat**时，虽然不会报错，但会提示**VS2019不能生成 .NET 6的项目文件**，后续在**VS2019**里面编译源码可能会有**warning**，也可能会影响到**Window打包**
+
+如果已经安装**VS2019**，只需要去**Visual Studio Installer**里安装一个**VS2022**即可，具体配置往下继续
+
+:::
 
 
 
@@ -81,6 +103,22 @@
 
 
 
+:::danger
+
+**UE5**需要选的东西会更多，但默认先选择和**UE4**一样的**使用C++的游戏开发**
+
+这里注意一个细节：进入你的**Windows设置** -> **系统** -> **Window规格**内查看你的**操作系统版本**
+
+我的是**Win11**系统，版本号是**22621.963**
+
+前面**UE4**里面的**WindowsSDK**的选项应该改选为**Windows11 SDK 22621**，找不到对应版本号的也没关系，**VS2022**会默认选好的**Windows11 SDK 20000**，这个也能用
+
+至于其他的选项，等正式编译源码的时候，**VS2022**会提示你还需要安装哪些
+
+:::
+
+
+
 #### 1.3 修改解决方案样式
 
 
@@ -91,6 +129,14 @@
 2. **工具->自定义->命令->工具栏->标准->解决方案配置->修改所选内容**
 3. 更改宽度：例如**200**
 4. 若要在生成项目时显示**输出**窗口，请在**选项对话框->项目和解决方案>常规**页上，选择**在生成开始时显示输出窗口**
+
+:::
+
+
+
+:::danger
+
+以上**VS2022**里也适用
 
 :::
 
@@ -109,6 +155,14 @@
 
 
 
+:::danger
+
+以上**VS2022**里也适用
+
+:::
+
+
+
 ### 2. 交叉编译器
 
 
@@ -118,6 +172,16 @@
 下载交叉编译器，千万别去**官方中文**的**虚幻文档**，里面给的**交叉编译工具链接**版本是错的，应该默认进入**官方英文**的文档网站内下载
 
 博客使用的是**UE4.27.2**，下载文档内提供的**链接**，并确保是`-v19`的版本，如果不是就进错网站了，正确的网站：[UE4.27.2 交叉编译](https://docs.unrealengine.com/4.27/en-US/SharingAndReleasing/Linux/GettingStarted/)
+
+:::
+
+
+
+:::danger
+
+**UE5.1**要用的是**-v20**版本，注意先卸载前面的**-V19**
+
+网址：[UE5.1交叉编译](https://docs.unrealengine.com/5.1/en-US/linux-development-requirements-for-unreal-engine/)
 
 :::
 
@@ -142,6 +206,7 @@ cmd验证：`%LINUX_MULTIARCH_ROOT%x86_64-unknown-linux-gnu\bin\clang++ -v`
 1. 进入系统环境变量
 2. 添加：`LINUX_MULTIARCH_ROOT`
 3. 路径：`安装目录\v19_clang-11.0.1-centos7\x86_64-unknown-linux-gnu\bin`
+4. **-v20**：`安装目录\v20_clang-13.0.1-centos7\x86_64-unknown-linux-gnu\bin`
 
 
 
@@ -234,6 +299,16 @@ VS版本参数：VS2012,VS2013,VS2015
 
 
 
+:::danger
+
+以上**UE5.1**也适用，但要注意 `--cache=`的路径
+
+尽量别用`--exclude`
+
+:::
+
+
+
 #### 3.2 生成UE4.sln文件
 
 
@@ -242,6 +317,14 @@ VS版本参数：VS2012,VS2013,VS2015
 
 - 双击运行**Setup.bat**
 - 双击运行**GenerateProjectFiles.bat**
+
+
+
+:::danger
+
+以上**UE5.1**也适用
+
+:::
 
 
 
@@ -277,6 +360,45 @@ VS版本参数：VS2012,VS2013,VS2015
 
 
 
+:::danger
+
+这里补充一个细节：**BuildConfiguration.xml**
+
+`源码引擎安装目录\UE5.1\Engine\Saved\UnrealBuildTool`
+
+`C:\Users\用户名\AppData\Roaming\Unreal Engine\UnrealBuildTool`
+
+两处都有改：后续可以加快**UE5**的编译速度**可能吧，应该，或许，大概，Maybe**
+
+我这里提供我自己用的：
+
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration xmlns="https://www.unrealengine.com/BuildConfiguration">
+ <ParallelExecutor>
+    <ProcessorCountMultiplier>2</ProcessorCountMultiplier>
+    <MaxProcessorCount>16</MaxProcessorCount>
+    <bStopCompilationAfterErrors>true</bStopCompilationAfterErrors>
+  </ParallelExecutor>
+</Configuration>
+```
+
+具体用法可以去上网查**BuildConfiguration.xml**
+
+
+
+还可以安装一个**UnrealVS**插件，说是可以**快速编译**：**可能吧，应该，或许，大概，Maybe**
+
+插件所在的目录：`E:\UrealEngineSource\UE5.1\Engine\Extras\UnrealVS`
+
+里面有两个选项：**VS2019**和**VS2022**，具体看你选择
+
+直接双击安装就可以，后面**解决方案里**找到**UE5**，右键就可以看到**UnrealVS Quick Build**
+
+:::
+
+
+
 #### 3.4 创建快捷方式
 
 
@@ -301,7 +423,63 @@ VS版本参数：VS2012,VS2013,VS2015
 
 
 
+:::danger
+
+以上**UE5.1**也适用
+
+:::
+
+
+
 ### 4. 打包测试项目
+
+
+
+:::danger
+
+以下**UE4 / UE5.1**也适用，**可能吧，应该，或许，大概，Maybe**
+
+注意几个可能出现的细节：往往到了这一步，打包**LinuxServer**不会有什么问题了，但你会发现打包**Windows**或者**WindowsClient**并没有打包出来
+
+单独打包**Windows**或者**WindowsClient**，会看到类似一下的报错信息：
+
+```powershell
+UATHelper: Packaging (Windows): ERROR: Game target not found. Game target is required with -cook or -cookonthefly
+```
+
+这种错误一般发生在**C++项目**，解决方法是：[StackOverflow](https://stackoverflow.com/questions/67536495/unreal-error-game-target-is-required-with-cook-or-cookonthefly)
+
+1. 复制`项目名.Target.cs`
+
+2. 粘贴并重命名`项目名Game.Target.cs`
+
+3. 修改内容参考如下：
+
+   ```csharp
+   using UnrealBuildTool;
+   using System.Collections.Generic;
+   
+   public class 项目名GameTarget : TargetRules // 类名改一下
+   {
+   	public 项目名GameTarget(TargetInfo Target) : base(Target) // 这里也改一下
+   	{
+   		Type = TargetType.Game; // 这里好像默认就是 Game，不用改了
+   		DefaultBuildSettings = BuildSettingsVersion.V2;
+   
+   		ExtraModuleNames.AddRange( new string[] { "项目名" } );
+   	}
+   }
+   ```
+
+4. 删除项目内的`Binaries`，`DerivedDataCache`，`Intermediate`
+
+5. 右键`项目名.uproject`，`Generate Visual Studio Project Files`
+
+6. 打开`项目名.sln`，编译项目
+
+7. 重新打开项目，再次尝试打包**Window**
+
+:::
 
 
 
@@ -333,7 +511,7 @@ VS版本参数：VS2012,VS2013,VS2015
 - 打开项目设置：
   - **全局GameMode**可以设为**none**，默认不设也许，完全不影响测试结果
   - 编辑器初始地图：无所谓
-  - 游戏默认地图：**Map_Server**
+  - 游戏默认地图：**Map_Start**
   - 过渡地图：**Map_Translation**
   - 服务器地图：**第三人称的模板默认地图**
 - 在项目设置，**打包**中搜索**list of maps to include in a packaged build**:
@@ -349,7 +527,9 @@ VS版本参数：VS2012,VS2013,VS2015
 
 注意：测试项目创建用的是不是源码引擎不重要，后面的[4.5 配置打包程序](#4.5 配置打包程序)要用**源码引擎打开**，具体后面会写
 
-接下来会编译至少两次**项目C++源码**，假设最终打包结果为：一个Linux Server，一个Windows Client
+接下来会编译至少两次**项目C++源码**，目的不是打包，而是**测试打包环境是否正常**，如果不需要测试，可以直接进入打包环节
+
+假设最终打包结果为：一个Linux Server，一个Windows Client
 
 需要先打开项目文件的**.sln**，解决方案依次是分别编译一下两种配置：
 
@@ -367,7 +547,7 @@ Windows Client包：**Development**，**Win64**，如果Windows Client想打包�
 
 
 
-上面的是警告，需要注意看需求，选择合适解决方案的配置
+上面的是警告，需要注意看需求，选择合适解决方案的配置，接下来是打包**LinuxServer**前的准备工作
 
 首先还算要打开项目目录下的**.sln**文件：
 
@@ -378,28 +558,31 @@ Windows Client包：**Development**，**Win64**，如果Windows Client想打包�
 3. 修改内容为：(博客的配置)
 
    ```c#
-   // Fill out your copyright notice in the Description page of Project Settings.
-   
    using UnrealBuildTool;
    using System.Collections.Generic;
    
-   public class Test01ServerTarget : TargetRules
+   public class 项目名ServerTarget : TargetRules // 类名改一下
    {
-   	public Test01ServerTarget(TargetInfo Target) : base(Target)
+   	public 项目名ServerTarget(TargetInfo Target) : base(Target) // 这里也改一下
    	{
-   		Type = TargetType.Server;
+   		Type = TargetType.Server; // 这里的Editor 改为 Server
    		DefaultBuildSettings = BuildSettingsVersion.V2;
    
-   		ExtraModuleNames.AddRange( new string[] { "Test01" } );
+   		ExtraModuleNames.AddRange( new string[] { "项目名" } );
    	}
    }
    ```
-
+   
 4. 分别是`public class Test01ServerTarget` ，`public Test01ServerTarget(TargetInfo Target)`，`Type = TargetType.Server`
 
 
 
-修改完成后，再依照上面的**Warning**内容进行编译项目文件
+修改完成后：
+
+1. 删除项目内的`Binaries`，`DerivedDataCache`，`Intermediate`
+2. 右键`项目名.uproject`，`Generate Visual Studio Project Files`
+3. 打开`项目名.sln`，编译项目
+4. 尝试继续打包**LinuxServer**
 
 
 
@@ -422,6 +605,16 @@ Windows Client包：**Development**，**Win64**，如果Windows Client想打包�
 7. 返回
 
 点击**启动此描述文件**，就可以打包了
+
+
+
+:::danger
+
+**UE5**这里好像没有**WindowsNoEditor**，选**Windows**或者**WindowsClient**
+
+如果有问题，可以看[4.1 创建测试项目](#4.1 创建测试项目)上面的`danger`提示
+
+:::
 
 
 
