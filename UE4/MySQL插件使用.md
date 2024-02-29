@@ -6,6 +6,10 @@
 
 
 
+>注意：该项目仅用于个人学习和demo使用，不可应用实际项目中，无论是安全性和性能都不符合需求
+>
+>
+>
 >Update To 2.0
 >
 >修复了一些bool返回结果错误的bug
@@ -14,7 +18,23 @@
 >
 >更新了新的2.0方法 《SelectOnTableToMap》 取代 1.0方法《SelectOnTableData》
 >
->具体用法可以看项目源码里的注释xin'x
+>SelectOnTableToMap 采用了TMap<FString, FString>存取数据库查询返回结果集的一整行数据，采用TArray<TMap>的结构保存
+>
+>在虚幻中TArray，TMap无法作为参数和返回值，所以TArray，TMap会用Struct封装起来使用
+>
+>
+>
+>Update To 3.0
+>
+>修复了 2.0 里 《SelectOnTableToMap》只能读取数据库返回的结果集一行数据的bug
+>
+>修复了虚幻引擎打包提示了类似".lib"的错误
+>
+>更换了MySQL第三方库为第三方的MariaDB的库
+>
+>插件支持UE5.1版的项目打包
+>
+>[目前插件仅支持Win64或Win32打包，以后会支持到Linux]
 
 
 
@@ -22,7 +42,7 @@
 
 
 
-[MySQL Plugin](https://www.aliyundrive.com/s/UiPTz9mnNUV) 提取码:17um
+[GitHub URL = MySQL Plugin](https://github.com/FHangH/Unreal_MySQL_Plugin)
 
 
 
